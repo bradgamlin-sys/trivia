@@ -158,6 +158,11 @@
       font-size: 0.95rem;
     }
 
+    .restore-note {
+      color: #9ed89e;
+      font-size: 0.95rem;
+    }
+
     .two-col {
       display: grid;
       grid-template-columns: 1.4fr 1fr;
@@ -252,9 +257,7 @@
     }
 
     @media (max-width: 1100px) {
-      .two-col {
-        grid-template-columns: 1fr;
-      }
+      .two-col { grid-template-columns: 1fr; }
       .leaderboard-mini .board-header,
       .leaderboard-mini .board-row {
         grid-template-columns: 72px 1.6fr 90px;
@@ -280,10 +283,12 @@
     const params = new URLSearchParams(window.location.search);
     const isHost = params.get("view") === "host";
     const ROUND_COUNT = 7;
+    const STORAGE_KEY = "baldGuyTriviaScoreboardData_v1";
 
     let teams = [];
     let draftTeams = [];
     let suppressIncomingUntil = 0;
+    let lastRestoreMessage = "";
 
     function blankRounds() {
       return Array.from({ length: ROUND_COUNT }, () => 0);
@@ -323,11 +328,33 @@
       }[m]));
     }
 
+    function saveLocalCopy() {
+      if (!isHost) return;
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(draftTeams));
+      } catch (e) {}
+    }
+
+    function loadLocalCopy() {
+      if (!isHost) return [];
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed.map((t, i) => normalizeTeam(t, i));
+      } catch (e) {
+        return [];
+      }
+    }
+
     function syncDraftFromTeams() {
       draftTeams = teams.map((t, i) => normalizeTeam(t, i));
+      saveLocalCopy();
     }
 
     function emitTeams() {
+      saveLocalCopy();
       suppressIncomingUntil = Date.now() + 1200;
       socket.emit("updateTeams", draftTeams.map((t, i) => normalizeTeam(t, i)));
     }
@@ -335,6 +362,7 @@
     function addTeam() {
       const nextNum = draftTeams.length + 1;
       draftTeams.push(normalizeTeam({ name: `Team ${nextNum}`, rounds: blankRounds() }, nextNum));
+      saveLocalCopy();
       render();
       emitTeams();
     }
@@ -342,6 +370,7 @@
     function resetScores() {
       if (!confirm("Clear all teams and scores?")) return;
       draftTeams = [];
+      saveLocalCopy();
       render();
       emitTeams();
     }
@@ -350,18 +379,38 @@
       const team = draftTeams.find(t => t.id === id);
       if (!team) return;
       team.name = value;
+      saveLocalCopy();
     }
 
     function updateDraftRound(id, roundIndex, value) {
       const team = draftTeams.find(t => t.id === id);
       if (!team) return;
       team.rounds[roundIndex] = value === "" ? 0 : (parseInt(value, 10) || 0);
+      saveLocalCopy();
     }
 
     function deleteTeam(id) {
       draftTeams = draftTeams.filter(t => t.id !== id);
+      saveLocalCopy();
       render();
       emitTeams();
+    }
+
+    function restoreFromLocalIfNeeded() {
+      if (!isHost) return;
+      const localTeams = loadLocalCopy();
+      if (!localTeams.length) return;
+
+      if (!teams.length) {
+        draftTeams = localTeams;
+        lastRestoreMessage = "Restored scores from this device.";
+        render();
+        emitTeams();
+        return;
+      }
+
+      draftTeams = teams.map((t, i) => normalizeTeam(t, i));
+      saveLocalCopy();
     }
 
     function renderDisplay() {
@@ -461,6 +510,8 @@
             <div class="host-note">7 rounds + total. Type scores directly. Host leaderboard is auto-sorted.</div>
           </div>
 
+          ${lastRestoreMessage ? `<div class="restore-note">${escapeHtml(lastRestoreMessage)}</div>` : ""}
+
           <div class="two-col">
             <div class="panel">
               <table>
@@ -505,6 +556,7 @@
 
     socket.on("updateTeams", (data) => {
       teams = (data || []).map((t, i) => normalizeTeam(t, i));
+
       if (!isHost) {
         render();
         return;
@@ -514,12 +566,18 @@
         return;
       }
 
-      syncDraftFromTeams();
-      render();
+      if (!teams.length) {
+        restoreFromLocalIfNeeded();
+      } else {
+        lastRestoreMessage = "";
+        syncDraftFromTeams();
+        render();
+      }
     });
 
     if (isHost) {
-      syncDraftFromTeams();
+      draftTeams = loadLocalCopy();
+      if (!draftTeams.length) draftTeams = [];
     }
 
     render();
