@@ -1,99 +1,535 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Trivia Scoreboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bald Guy Trivia Scoreboard</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
+    :root {
+      --bg: #050505;
+      --panel: #121212;
+      --panel-2: #1a1a1a;
+      --line: #2d2d2d;
+      --text: #f5f5f5;
+      --muted: #b8b8b8;
+      --accent: #f5c542;
+      --danger: #ff6b6b;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: Arial;
-      background: black;
-      color: white;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .display-wrap, .host-wrap {
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    .title {
       text-align: center;
+      font-size: clamp(2.4rem, 5.8vw, 4.5rem);
+      font-weight: 800;
+      color: var(--accent);
+      margin: 8px 0 6px;
+      letter-spacing: 1px;
     }
-    .team {
-      font-size: 2em;
-      margin: 10px;
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      margin-bottom: 18px;
     }
-    input {
-      font-size: 1.2em;
-      margin: 5px;
+
+    .board {
+      background: linear-gradient(180deg, #181818, #0d0d0d);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+    }
+
+    .board-header,
+    .board-row {
+      display: grid;
+      grid-template-columns: 90px 1.8fr repeat(7, 1fr) 1fr;
+      gap: 8px;
+      align-items: center;
+      padding: 14px 16px;
+    }
+
+    .board-header {
+      background: #202020;
+      font-weight: 700;
+      color: var(--accent);
+      border-bottom: 1px solid var(--line);
+      font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+    }
+
+    .board-row {
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: clamp(1.1rem, 2vw, 1.7rem);
+      min-height: 70px;
+    }
+
+    .board-row:nth-child(even) {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .rank {
+      font-weight: 800;
+      font-size: clamp(1.2rem, 2.3vw, 1.9rem);
+    }
+
+    .team-name {
+      font-weight: 700;
+      word-break: break-word;
+      font-size: clamp(1.15rem, 2.1vw, 1.8rem);
+    }
+
+    .total-cell {
+      font-weight: 800;
+      color: var(--accent);
+      font-size: clamp(1.2rem, 2.2vw, 1.9rem);
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 48px 20px;
+      font-size: 1.2rem;
+    }
+
+    .host-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .host-top {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: var(--accent);
+      color: #111;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #2f2f2f;
+      color: var(--text);
+      border: 1px solid #444;
+    }
+
+    button.danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .host-note {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1050px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #1f1f1f;
+      color: var(--accent);
+      z-index: 2;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    td:nth-child(2), th:nth-child(2) {
+      text-align: left;
+      min-width: 200px;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input[type="number"] {
+      text-align: center;
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .total-host {
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .leaderboard-mini {
+      min-width: 0;
+    }
+
+    .leaderboard-mini .board-header,
+    .leaderboard-mini .board-row {
+      grid-template-columns: 72px 1.6fr 100px;
+      padding: 12px 14px;
+    }
+
+    .leaderboard-mini .board-row {
+      font-size: clamp(1.1rem, 1.8vw, 1.55rem);
+      min-height: 62px;
+    }
+
+    .leaderboard-mini .team-name {
+      font-size: clamp(1.1rem, 1.7vw, 1.5rem);
+    }
+
+    .leaderboard-mini .rank,
+    .leaderboard-mini .total-cell {
+      font-size: clamp(1.15rem, 1.9vw, 1.65rem);
+    }
+
+    @media (max-width: 1100px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+      .leaderboard-mini .board-header,
+      .leaderboard-mini .board-row {
+        grid-template-columns: 72px 1.6fr 90px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .page { padding: 12px; }
+      .board-header,
+      .board-row {
+        grid-template-columns: 70px 1.4fr repeat(7, 0.95fr) 0.95fr;
+        gap: 6px;
+        padding: 10px 8px;
+      }
     }
   </style>
 </head>
-
 <body>
+  <div id="app" class="page"></div>
 
-<h1>Bald Guy Trivia 🧠</h1>
+  <script>
+    const socket = io();
+    const params = new URLSearchParams(window.location.search);
+    const isHost = params.get("view") === "host";
+    const ROUND_COUNT = 7;
 
-<div id="hostControls" style="display:none;">
-  <button onclick="addTeam()">Add Team</button>
-  <div id="teamInputs"></div>
-</div>
+    let teams = [];
+    let draftTeams = [];
+    let suppressIncomingUntil = 0;
 
-<div id="display"></div>
+    function blankRounds() {
+      return Array.from({ length: ROUND_COUNT }, () => 0);
+    }
 
-<script>
-const socket = io();
-let teams = [];
+    function normalizeTeam(team, idx = 0) {
+      let rounds = Array.isArray(team?.rounds) ? team.rounds.slice(0, ROUND_COUNT) : [];
+      while (rounds.length < ROUND_COUNT) rounds.push(0);
+      rounds = rounds.map(v => Number(v) || 0);
+      return {
+        id: team?.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${idx}`,
+        name: typeof team?.name === "string" ? team.name : `Team ${idx + 1}`,
+        rounds
+      };
+    }
 
-const params = new URLSearchParams(window.location.search);
-const isHost = params.get("view") === "host";
+    function totalFor(team) {
+      return (team.rounds || []).reduce((sum, val) => sum + (Number(val) || 0), 0);
+    }
 
-if (isHost) {
-  document.getElementById("hostControls").style.display = "block";
-}
+    function sortedTeams(source) {
+      return [...source]
+        .map(t => ({ ...t, total: totalFor(t) }))
+        .sort((a, b) => {
+          if (b.total !== a.total) return b.total - a.total;
+          return a.name.localeCompare(b.name);
+        });
+    }
 
-function render() {
-  const display = document.getElementById("display");
-  display.innerHTML = "";
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[m]));
+    }
 
-  const sorted = [...teams].sort((a,b) => b.score - a.score);
+    function syncDraftFromTeams() {
+      draftTeams = teams.map((t, i) => normalizeTeam(t, i));
+    }
 
-  sorted.forEach(t => {
-    const div = document.createElement("div");
-    div.className = "team";
-    div.innerText = `${t.name}: ${t.score}`;
-    display.appendChild(div);
-  });
+    function emitTeams() {
+      suppressIncomingUntil = Date.now() + 1200;
+      socket.emit("updateTeams", draftTeams.map((t, i) => normalizeTeam(t, i)));
+    }
 
-  if (isHost) {
-    const inputs = document.getElementById("teamInputs");
-    inputs.innerHTML = "";
+    function addTeam() {
+      const nextNum = draftTeams.length + 1;
+      draftTeams.push(normalizeTeam({ name: `Team ${nextNum}`, rounds: blankRounds() }, nextNum));
+      render();
+      emitTeams();
+    }
 
-    teams.forEach((t, i) => {
-      const container = document.createElement("div");
+    function resetScores() {
+      if (!confirm("Clear all teams and scores?")) return;
+      draftTeams = [];
+      render();
+      emitTeams();
+    }
 
-      const name = document.createElement("input");
-      name.value = t.name;
-      name.oninput = () => updateTeam(i, name.value, score.value);
+    function updateDraftName(id, value) {
+      const team = draftTeams.find(t => t.id === id);
+      if (!team) return;
+      team.name = value;
+    }
 
-      const score = document.createElement("input");
-      score.type = "number";
-      score.value = t.score;
-      score.oninput = () => updateTeam(i, name.value, score.value);
+    function updateDraftRound(id, roundIndex, value) {
+      const team = draftTeams.find(t => t.id === id);
+      if (!team) return;
+      team.rounds[roundIndex] = value === "" ? 0 : (parseInt(value, 10) || 0);
+    }
 
-      container.appendChild(name);
-      container.appendChild(score);
-      inputs.appendChild(container);
+    function deleteTeam(id) {
+      draftTeams = draftTeams.filter(t => t.id !== id);
+      render();
+      emitTeams();
+    }
+
+    function renderDisplay() {
+      const ranked = sortedTeams(teams);
+      const rows = ranked.length
+        ? ranked.map((team, i) => `
+          <div class="board-row">
+            <div class="rank">#${i + 1}</div>
+            <div class="team-name">${escapeHtml(team.name)}</div>
+            ${team.rounds.map(score => `<div>${score}</div>`).join("")}
+            <div class="total-cell">${team.total}</div>
+          </div>
+        `).join("")
+        : `<div class="empty-state">Waiting for teams…</div>`;
+
+      return `
+        <div class="display-wrap">
+          <div class="title">Bald Guy Trivia</div>
+          <div class="subtitle">Live Leaderboard</div>
+          <div class="board">
+            <div class="board-header">
+              <div>Rank</div>
+              <div>Team</div>
+              <div>R1</div>
+              <div>R2</div>
+              <div>R3</div>
+              <div>R4</div>
+              <div>R5</div>
+              <div>R6</div>
+              <div>R7</div>
+              <div>Total</div>
+            </div>
+            ${rows}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderHost() {
+      const ranked = sortedTeams(draftTeams);
+
+      const rows = ranked.length
+        ? ranked.map((team, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>
+              <input
+                type="text"
+                value="${escapeHtml(team.name)}"
+                oninput="updateDraftName('${team.id}', this.value)"
+                onchange="emitTeams()"
+                onblur="emitTeams()"
+              />
+            </td>
+            ${team.rounds.map((score, roundIndex) => `
+              <td>
+                <input
+                  type="number"
+                  inputmode="numeric"
+                  step="1"
+                  value="${score}"
+                  oninput="updateDraftRound('${team.id}', ${roundIndex}, this.value)"
+                  onchange="emitTeams()"
+                  onblur="emitTeams()"
+                />
+              </td>
+            `).join("")}
+            <td><span class="total-host">${team.total}</span></td>
+            <td>
+              <button class="danger" onclick="deleteTeam('${team.id}')">Delete</button>
+            </td>
+          </tr>
+        `).join("")
+        : `<tr><td colspan="11" style="padding:24px;color:var(--muted);">No teams yet. Click Add Team.</td></tr>`;
+
+      const miniRows = ranked.length
+        ? ranked.map((team, i) => `
+          <div class="board-row">
+            <div class="rank">#${i + 1}</div>
+            <div class="team-name">${escapeHtml(team.name)}</div>
+            <div class="total-cell">${team.total}</div>
+          </div>
+        `).join("")
+        : `<div class="empty-state">No teams yet.</div>`;
+
+      return `
+        <div class="host-wrap">
+          <div class="title">Bald Guy Trivia</div>
+          <div class="subtitle">Host Control</div>
+
+          <div class="host-top">
+            <div class="controls">
+              <button onclick="addTeam()">Add Team</button>
+              <button class="secondary" onclick="emitTeams()">Save / Push Updates</button>
+              <button class="danger" onclick="resetScores()">Clear All</button>
+            </div>
+            <div class="host-note">7 rounds + total. Type scores directly. Host leaderboard is auto-sorted.</div>
+          </div>
+
+          <div class="two-col">
+            <div class="panel">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Team</th>
+                    <th>R1</th>
+                    <th>R2</th>
+                    <th>R3</th>
+                    <th>R4</th>
+                    <th>R5</th>
+                    <th>R6</th>
+                    <th>R7</th>
+                    <th>Total</th>
+                    <th>Delete</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="board leaderboard-mini">
+              <div class="board-header">
+                <div>Rank</div>
+                <div>Team</div>
+                <div>Total</div>
+              </div>
+              ${miniRows}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      const app = document.getElementById("app");
+      app.innerHTML = isHost ? renderHost() : renderDisplay();
+    }
+
+    socket.on("updateTeams", (data) => {
+      teams = (data || []).map((t, i) => normalizeTeam(t, i));
+      if (!isHost) {
+        render();
+        return;
+      }
+
+      if (Date.now() < suppressIncomingUntil) {
+        return;
+      }
+
+      syncDraftFromTeams();
+      render();
     });
-  }
-}
 
-function addTeam() {
-  teams.push({ name: "Team", score: 0 });
-  socket.emit("updateTeams", teams);
-}
+    if (isHost) {
+      syncDraftFromTeams();
+    }
 
-function updateTeam(i, name, score) {
-  teams[i] = { name, score: parseInt(score) || 0 };
-  socket.emit("updateTeams", teams);
-}
+    render();
 
-socket.on("updateTeams", (data) => {
-  teams = data;
-  render();
-});
-</script>
-
+    window.addTeam = addTeam;
+    window.resetScores = resetScores;
+    window.updateDraftName = updateDraftName;
+    window.updateDraftRound = updateDraftRound;
+    window.deleteTeam = deleteTeam;
+    window.emitTeams = emitTeams;
+  </script>
 </body>
 </html>
