@@ -282,6 +282,7 @@
     const socket = io();
     const params = new URLSearchParams(window.location.search);
     const isHost = params.get("view") === "host";
+    const isFinal = params.get("view") === "final";
     const ROUND_COUNT = 7;
     const STORAGE_KEY = "baldGuyTriviaScoreboardData_v1";
 
@@ -318,6 +319,24 @@
         });
     }
 
+    function ascendingTeams(source) {
+  return [...source]
+    .map(t => ({ ...t, total: totalFor(t) }))
+    .sort((a, b) => {
+      if (a.total !== b.total) return a.total - b.total;
+      return a.name.localeCompare(b.name);
+    });
+}
+
+function getOrdinalSuffix(n) {
+  if (n % 100 >= 11 && n % 100 <= 13) return "th";
+  switch (n % 10) {
+    case 1: return "st";
+    case 2: return "nd";
+    case 3: return "rd";
+    default: return "th";
+  }
+}
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, (m) => ({
         '&': '&amp;',
@@ -412,7 +431,67 @@
       draftTeams = teams.map((t, i) => normalizeTeam(t, i));
       saveLocalCopy();
     }
+let finalRevealCount = 1;
 
+function renderFinalReveal() {
+  const ranked = ascendingTeams(teams);
+  const visibleTeams = ranked.slice(0, finalRevealCount);
+
+  const rows = visibleTeams.length
+    ? visibleTeams.map((team, i) => {
+      const place = ranked.length - i;
+
+      return `
+        <div class="board-row">
+          <div class="rank">${place}${getOrdinalSuffix(place)}</div>
+          <div class="team-name">${escapeHtml(team.name)}</div>
+          ${team.rounds.map(score => `<div>${score}</div>`).join("")}
+          <div class="total-cell">${team.total}</div>
+        </div>
+      `;
+    }).join("")
+    : `<div class="empty-state">Waiting for teams…</div>`;
+
+  return `
+    <div class="display-wrap">
+      <div class="title">Final Scores</div>
+      <div class="subtitle">Last Place to First Place</div>
+
+      <div class="controls" style="justify-content:center; margin-bottom:16px;">
+        <button onclick="revealNextTeam()">Reveal Next Team</button>
+        <button class="secondary" onclick="resetFinalReveal()">Reset Reveal</button>
+      </div>
+
+      <div class="board">
+        <div class="board-header">
+          <div>Place</div>
+          <div>Team</div>
+          <div>R1</div>
+          <div>R2</div>
+          <div>R3</div>
+          <div>R4</div>
+          <div>R5</div>
+          <div>R6</div>
+          <div>R7</div>
+          <div>Total</div>
+        </div>
+
+        ${rows}
+      </div>
+    </div>
+  `;
+}
+
+function revealNextTeam() {
+  finalRevealCount++;
+  render();
+}
+
+function resetFinalReveal() {
+  finalRevealCount = 1;
+  render();
+}
+  
     function renderDisplay() {
       const ranked = sortedTeams(teams);
       const rows = ranked.length
@@ -470,7 +549,7 @@
                 <input
                   type="number"
                   inputmode="numeric"
-                  step=".5"
+                  step="0.5"
                   value="${score}"
                   oninput="updateDraftRound('${team.id}', ${roundIndex}, this.value)"
                   onchange="emitTeams()"
@@ -550,8 +629,15 @@
     }
 
     function render() {
-      const app = document.getElementById("app");
-      app.innerHTML = isHost ? renderHost() : renderDisplay();
+  const app = document.getElementById("app");
+
+  if (isHost) {
+    app.innerHTML = renderHost();
+  } else if (isFinal) {
+    app.innerHTML = renderFinalReveal();
+  } else {
+    app.innerHTML = renderDisplay();
+  }
     }
 
     socket.on("updateTeams", (data) => {
@@ -588,6 +674,8 @@
     window.updateDraftRound = updateDraftRound;
     window.deleteTeam = deleteTeam;
     window.emitTeams = emitTeams;
+      window.revealNextTeam = revealNextTeam;
+window.resetFinalReveal = resetFinalReveal;
   </script>
 </body>
 </html>
