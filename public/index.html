@@ -385,7 +385,7 @@
     function updateDraftRound(id, roundIndex, value) {
       const team = draftTeams.find(t => t.id === id);
       if (!team) return;
-      team.rounds[roundIndex] = value === "" ? 0 : (parseInt(value, 10) || 0);
+      team.rounds[roundIndex] = value === "" ? 0 : (parseFloat(value) || 0);
       saveLocalCopy();
     }
 
@@ -470,7 +470,7 @@
                 <input
                   type="number"
                   inputmode="numeric"
-                  step="1"
+                  step=".5"
                   value="${score}"
                   oninput="updateDraftRound('${team.id}', ${roundIndex}, this.value)"
                   onchange="emitTeams()"
