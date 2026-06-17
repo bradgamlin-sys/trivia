@@ -327,6 +327,18 @@
   max-width: 400px;
   width: auto;
 }
+.header-brand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 10px 0;
+}
+
+.logo-side {
+  height: 90px;
+  width: auto;
+}
   </style>
 </head>
 <body>
@@ -511,7 +523,13 @@ function renderFinalReveal() {
   <img src="bg.png" alt="Bald Guy Trivia Logo" class="logo">
 </div>
 
-<div class="title">Final Scores</div>
+<div class="header-brand">
+  <img src="bg.png" alt="Logo" class="logo-side">
+
+  <div class="title">Bald Guy Trivia</div>
+
+  <img src="bg.png" alt="Logo" class="logo-side">
+</div>
       <div class="subtitle">Last Place to First Place</div>
 
       <div class="final-reveal-controls">
@@ -555,7 +573,13 @@ function resetFinalReveal() {
   <img src="bg.png" alt="Bald Guy Trivia Logo" class="logo">
 </div>
 
-<div class="title">Bald Guy Trivia</div>
+<div class="header-brand">
+  <img src="bg.png" alt="Logo" class="logo-side">
+
+  <div class="title">Bald Guy Trivia</div>
+
+  <img src="bg.png" alt="Logo" class="logo-side">
+</div>
           <div class="subtitle">Live Leaderboard</div>
           <div class="board">
             <div class="board-header">
