@@ -283,6 +283,49 @@
 .final-board .board-header {
   display: none;
 }
+ .final-reveal-stage {
+  min-height: 68vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.final-reveal-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 160px;
+  align-items: center;
+  gap: 20px;
+  background: linear-gradient(180deg, #181818, #0d0d0d);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px 24px;
+  font-size: clamp(1.8rem, 3.4vw, 3.4rem);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+}
+
+.final-reveal-place {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.final-reveal-team {
+  font-weight: 800;
+  word-break: break-word;
+}
+
+.final-reveal-total {
+  color: var(--accent);
+  font-weight: 900;
+  text-align: right;
+}
+
+.final-reveal-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
   </style>
 </head>
 <body>
@@ -445,20 +488,17 @@ let finalRevealCount = 1;
 
 function renderFinalReveal() {
   const ranked = ascendingTeams(teams);
-const visibleTeams = ranked
-  .slice(0, finalRevealCount)
-  .reverse();
+  const visibleTeams = ranked.slice(0, finalRevealCount).reverse();
 
   const rows = visibleTeams.length
     ? visibleTeams.map((team, i) => {
-    const place = ranked.length - (visibleTeams.length - 1 - i);
+      const place = ranked.length - (visibleTeams.length - 1 - i);
 
       return `
-        <div class="board-row">
-          <div class="rank">${place}${getOrdinalSuffix(place)}</div>
-          <div class="team-name">${escapeHtml(team.name)}</div>
-          ${team.rounds.map(score => `<div>${score}</div>`).join("")}
-          <div class="total-cell">${team.total}</div>
+        <div class="final-reveal-row">
+          <div class="final-reveal-place">${place}${getOrdinalSuffix(place)}</div>
+          <div class="final-reveal-team">${escapeHtml(team.name)}</div>
+          <div class="final-reveal-total">${team.total}</div>
         </div>
       `;
     }).join("")
@@ -469,25 +509,12 @@ const visibleTeams = ranked
       <div class="title">Final Scores</div>
       <div class="subtitle">Last Place to First Place</div>
 
-      <div class="controls" style="justify-content:center; margin-bottom:16px;">
+      <div class="final-reveal-controls">
         <button onclick="revealNextTeam()">Reveal Next Team</button>
         <button class="secondary" onclick="resetFinalReveal()">Reset Reveal</button>
       </div>
 
-    <div class="board final-board">
-        <div class="board-header">
-          <div>Place</div>
-          <div>Team</div>
-          <div>R1</div>
-          <div>R2</div>
-          <div>R3</div>
-          <div>R4</div>
-          <div>R5</div>
-          <div>R6</div>
-          <div>R7</div>
-          <div>Total</div>
-        </div>
-
+      <div class="final-reveal-stage">
         ${rows}
       </div>
     </div>
