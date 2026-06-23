@@ -384,7 +384,6 @@ const rounds = [
 function buildSlidesFromRounds(rounds) {
   let generatedSlides = [];
 
-  // First: all round question sections
   rounds.forEach(round => {
     generatedSlides.push({
       type: "title",
@@ -392,19 +391,33 @@ function buildSlidesFromRounds(rounds) {
       title: round.title
     });
 
-    round.questions.forEach((item, index) => {
+    const isImageRound = round.questions.some(item => item.type === "imageRound");
+
+    if (isImageRound) {
       generatedSlides.push({
-        type: "question",
+        type: "imageRound",
         round: round.round,
         roundTitle: round.title,
-        number: index + 1,
-        question: item.question,
-        answer: item.answer
+        images: round.questions.map((item, index) => ({
+          number: index + 1,
+          media: item.media,
+          answer: item.answer
+        }))
       });
-    });
+    } else {
+      round.questions.forEach((item, index) => {
+        generatedSlides.push({
+          type: "question",
+          round: round.round,
+          roundTitle: round.title,
+          number: index + 1,
+          question: item.question,
+          answer: item.answer
+        });
+      });
+    }
   });
 
-  // Then: all round answer sections
   rounds.forEach(round => {
     generatedSlides.push({
       type: "title",
@@ -833,7 +846,26 @@ function renderShow() {
       </div>
     `;
   }
+if (currentSlide.type === "imageRound") {
+  return `
+    <div style="min-height:100vh;padding:10px;text-align:center">
+      <div style="font-size:2rem;color:#f5c542;margin-bottom:25px">
+  ${currentSlide.roundTitle}
+</div>
 
+      <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:18px;max-width:1900px;margin:0 auto">
+        ${currentSlide.images.map(img => `
+          <div style="position:relative;background:#111;padding:4px;border-radius:10px">
+            <div style="position:absolute;top:8px;left:12px;font-size:1.5rem;color:#f5c542;font-weight:bold">
+              ${img.number}
+            </div>
+            <img src="/images/${img.media}" style="width:100%;height:420px;object-fit:contain">
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
   const isAnswerMode =
     currentSlide.type === "answerQuestion" ||
     currentSlide.type === "answerReveal";
