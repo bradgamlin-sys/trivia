@@ -1,0 +1,34 @@
+[
+  {
+    "roundOrder": 1,
+    "round": "Knowledge Casserole",
+    "type": "question",
+    "question": "What animal was found hiding in a stuffed animal display?",
+    "answer": "Opossum",
+    "media": ""
+  },
+  {
+    "roundOrder": 1,
+    "round": "Knowledge Casserole",
+    "type": "question",
+    "question": "What escaped on a flight from Cancun to London?",
+    "answer": "A venomous snake",
+    "media": ""
+  },
+  {
+    "roundOrder": 2,
+    "round": "Ocho World Report",
+    "type": "question",
+    "question": "What did a Waymo cab drive onto?",
+    "answer": "Railroad tracks",
+    "media": ""
+  },
+  {
+  "roundOrder": 2,
+  "round": "Ocho World Report",
+  "type": "question",
+  "question": "What color is Big Bird?",
+  "answer": "Yellow",
+  "media": ""
+}
+]

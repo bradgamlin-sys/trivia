@@ -435,6 +435,33 @@ function buildSlidesFromRounds(rounds) {
 
   return generatedSlides;
 }
+function buildSlidesFromRows(rows) {
+  const groupedRounds = [];
+
+  rows.forEach(row => {
+    let round = groupedRounds.find(r => r.round === Number(row.roundOrder));
+
+    if (!round) {
+      round = {
+        round: Number(row.roundOrder),
+        title: row.round,
+        questions: []
+      };
+      groupedRounds.push(round);
+    }
+
+    round.questions.push({
+      type: row.type,
+      question: row.question,
+      answer: row.answer,
+      media: row.media
+    });
+  });
+
+  groupedRounds.sort((a, b) => a.round - b.round);
+
+  return buildSlidesFromRounds(groupedRounds);
+}
 let slides = buildSlidesFromRounds(rounds);
 
 
@@ -831,9 +858,9 @@ const visibleSlides = slides.filter((slide, index) => {
         ROUND ${currentSlide.round} ${isAnswerMode ? "ANSWERS" : ""}
       </div>
 
-      <div style="font-size:2.4rem;max-width:1300px;margin:0 auto">
+      <div style="font-size:clamp(1.2rem, 2.6vw, 2.4rem);max-width:1400px;margin:0 auto;line-height:1.18">
        ${visibleSlides.map(slide => `
-  <div style="margin-bottom:35px">
+  <div style="margin-bottom:18px">
     ${
       slide.type === "answerReveal"
         ? `<div style="color:#f5c542;margin-left:45px"><strong>A.</strong> ${slide.answer}</div>`
@@ -933,12 +960,28 @@ function previousSlide() {
 if (isShow) {
   setInterval(render, 1000);
 }
+function parseCSV(csvText) {
+  const lines = csvText.trim().split("\n");
+  const headers = lines[0].split(",").map(h => h.trim());
+
+  return lines.slice(1).map(line => {
+    const values = line.split(",").map(v => v.trim());
+    const row = {};
+
+    headers.forEach((header, index) => {
+      row[header.charAt(0).toLowerCase() + header.slice(1)] = values[index] || "";
+    });
+
+    return row;
+  });
+}
   async function loadQuestions() {
   try {
-    const response = await fetch("questions.json");
-    const loadedRounds = await response.json();
+   const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vTR1_YPoAcNeQ1Oaw3K1TuyDYFFww9u2IntGd5ZlHTd-3qy7RnAalOeRmsHTDIvi1A4o7xfjBviNca-/pub?output=csv&cacheBust=" + Date.now());
+const csvText = await response.text();
+const loadedRows = parseCSV(csvText);
 
-    slides = buildSlidesFromRounds(loadedRounds);
+slides = buildSlidesFromRows(loadedRows);
     render();
   } catch (error) {
     console.error("Could not load questions.json", error);
