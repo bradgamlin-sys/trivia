@@ -876,7 +876,9 @@ const visibleSlides = slides.filter((slide, index) => {
 function renderControl() {
   currentSlideIndex = getCurrentSlideIndex();
 const slide = slides[currentSlideIndex];
-
+const roundTitles = slides.filter(
+  slide => slide.type === "title"
+);
   return `
     <div style="padding:40px;text-align:center">
       <h1>Show Controller</h1>
@@ -893,6 +895,18 @@ const slide = slides[currentSlideIndex];
       : `${slide.type.toUpperCase()} ${slide.number}`
   }
 <div>
+  <div style="margin:30px auto;max-width:900px">
+  <h2>Jump to Section</h2>
+
+  ${roundTitles.map(titleSlide => {
+    const index = slides.indexOf(titleSlide);
+    return `
+      <button onclick="jumpToSlide(${index})" style="font-size:1.1rem;padding:12px 18px;margin:6px">
+        ${titleSlide.title}
+      </button>
+    `;
+  }).join("")}
+</div>
   <button onclick="previousSlide()" style="font-size:2rem;padding:20px 40px;margin:10px">
     ◀ Previous
   </button>
@@ -901,6 +915,7 @@ const slide = slides[currentSlideIndex];
     Next ▶
   </button>
 </div>
+
   `;
 }
 function nextSlide() {
@@ -914,6 +929,11 @@ function previousSlide() {
   currentSlideIndex = getCurrentSlideIndex();
   currentSlideIndex = Math.max(currentSlideIndex - 1, 0);
   setCurrentSlideIndex(currentSlideIndex);
+  render();
+}
+function jumpToSlide(index) {
+  setCurrentSlideIndex(index);
+  currentSlideIndex = index;
   render();
 }
   function render() {
