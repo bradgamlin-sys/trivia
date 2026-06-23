@@ -1,0 +1,26 @@
+[
+  {
+    "round": 1,
+    "title": "Knowledge Casserole",
+    "questions": [
+      {
+        "question": "What animal was found hiding in a stuffed animal display?",
+        "answer": "Opossum"
+      },
+      {
+        "question": "What escaped on a flight from Cancun to London?",
+        "answer": "A venomous snake"
+      }
+    ]
+  },
+  {
+    "round": 2,
+    "title": "Ocho your mom round",
+    "questions": [
+      {
+        "question": "What did a Waymo cab drive onto?",
+        "answer": "Railroad tracks"
+      }
+    ]
+  }
+]

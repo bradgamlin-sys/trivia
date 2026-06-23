@@ -349,10 +349,97 @@
     const params = new URLSearchParams(window.location.search);
     const isHost = params.get("view") === "host";
     const isFinal = params.get("view") === "final";
-    const ROUND_COUNT = 7;
-    const STORAGE_KEY = "baldGuyTriviaScoreboardData_v1";
+    const isShow = params.get("view") === "show";
+const isControl = params.get("view") === "control";
+   const ROUND_COUNT = 7;
+const STORAGE_KEY = "baldGuyTriviaScoreboardData_v1";
 
-    let teams = [];
+let currentSlideIndex = 0;
+const rounds = [
+  {
+    round: 1,
+    title: "Knowledge Casserole",
+    questions: [
+      {
+        question: "What animal was found hiding in a stuffed animal display?",
+        answer: "Opossum"
+      },
+      {
+        question: "What escaped on a flight from Cancun to London?",
+        answer: "A venomous snake"
+      }
+    ]
+  },
+  {
+    round: 2,
+    title: "Ocho test round",
+    questions: [
+      {
+        question: "What did a Waymo cab drive onto?",
+        answer: "Railroad tracks"
+      }
+    ]
+  }
+];
+function buildSlidesFromRounds(rounds) {
+  let generatedSlides = [];
+
+  // First: all round question sections
+  rounds.forEach(round => {
+    generatedSlides.push({
+      type: "title",
+      round: round.round,
+      title: round.title
+    });
+
+    round.questions.forEach((item, index) => {
+      generatedSlides.push({
+        type: "question",
+        round: round.round,
+        roundTitle: round.title,
+        number: index + 1,
+        question: item.question,
+        answer: item.answer
+      });
+    });
+  });
+
+  // Then: all round answer sections
+  rounds.forEach(round => {
+    generatedSlides.push({
+      type: "title",
+      round: round.round,
+      title: `${round.title} Answers`
+    });
+
+    round.questions.forEach((item, index) => {
+      generatedSlides.push({
+        type: "answerQuestion",
+        round: round.round,
+        roundTitle: round.title,
+        number: index + 1,
+        question: item.question,
+        answer: item.answer
+      });
+
+      generatedSlides.push({
+        type: "answerReveal",
+        round: round.round,
+        roundTitle: round.title,
+        number: index + 1,
+        question: item.question,
+        answer: item.answer
+      });
+    });
+  });
+
+  return generatedSlides;
+}
+let slides = buildSlidesFromRounds(rounds);
+
+
+let teams = [];
+   
     let draftTeams = [];
     let suppressIncomingUntil = 0;
     let lastRestoreMessage = "";
@@ -696,18 +783,127 @@ function resetFinalReveal() {
         </div>
       `;
     }
+    function getCurrentSlideIndex() {
+  return Number(localStorage.getItem("bgtCurrentSlideIndex") || 0);
+}
 
-    function render() {
+function setCurrentSlideIndex(index) {
+  localStorage.setItem("bgtCurrentSlideIndex", index);
+}
+function renderShow() {
+  currentSlideIndex = getCurrentSlideIndex();
+  const currentSlide = slides[currentSlideIndex];
+
+  if (currentSlide.type === "title") {
+    return `
+      <div style="min-height:100vh;display:flex;justify-content:center;align-items:center;text-align:center;flex-direction:column">
+        <div style="font-size:2rem;color:#f5c542;margin-bottom:20px">
+          ROUND ${currentSlide.round}
+        </div>
+        <div style="font-size:6rem;font-weight:bold">
+          ${currentSlide.title}
+        </div>
+      </div>
+    `;
+  }
+
+  const isAnswerMode =
+    currentSlide.type === "answerQuestion" ||
+    currentSlide.type === "answerReveal";
+
+const visibleSlides = slides.filter((slide, index) => {
+  if (index > currentSlideIndex) return false;
+  if (slide.round !== currentSlide.round) return false;
+
+  if (!isAnswerMode) {
+    return slide.type === "question";
+  }
+
+  return (
+    slide.type === "answerQuestion" ||
+    slide.type === "answerReveal"
+  );
+});
+
+  return `
+    <div style="min-height:100vh;padding:60px;text-align:left">
+      <div style="font-size:2rem;color:#f5c542;margin-bottom:30px;text-align:center">
+        ROUND ${currentSlide.round} ${isAnswerMode ? "ANSWERS" : ""}
+      </div>
+
+      <div style="font-size:2.4rem;max-width:1300px;margin:0 auto">
+       ${visibleSlides.map(slide => `
+  <div style="margin-bottom:35px">
+    ${
+      slide.type === "answerReveal"
+        ? `<div style="color:#f5c542;margin-left:45px"><strong>A.</strong> ${slide.answer}</div>`
+        : `<strong>${slide.number}.</strong> ${slide.question}`
+    }
+  </div>
+`).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderControl() {
+  currentSlideIndex = getCurrentSlideIndex();
+const slide = slides[currentSlideIndex];
+
+  return `
+    <div style="padding:40px;text-align:center">
+      <h1>Show Controller</h1>
+
+      <div style="font-size:1.5rem;margin:30px">
+  Slide ${currentSlideIndex + 1} of ${slides.length}
+</div>
+
+<div style="font-size:1.5rem;margin:30px">
+  Current: Round ${slide.round}
+  ${
+    slide.type === "title"
+      ? slide.title
+      : `${slide.type.toUpperCase()} ${slide.number}`
+  }
+<div>
+  <button onclick="previousSlide()" style="font-size:2rem;padding:20px 40px;margin:10px">
+    ◀ Previous
+  </button>
+
+  <button onclick="nextSlide()" style="font-size:2rem;padding:20px 40px;margin:10px">
+    Next ▶
+  </button>
+</div>
+  `;
+}
+function nextSlide() {
+  currentSlideIndex = getCurrentSlideIndex();
+  currentSlideIndex = Math.min(currentSlideIndex + 1, slides.length - 1);
+  setCurrentSlideIndex(currentSlideIndex);
+  render();
+}
+
+function previousSlide() {
+  currentSlideIndex = getCurrentSlideIndex();
+  currentSlideIndex = Math.max(currentSlideIndex - 1, 0);
+  setCurrentSlideIndex(currentSlideIndex);
+  render();
+}
+  function render() {
   const app = document.getElementById("app");
 
   if (isHost) {
     app.innerHTML = renderHost();
   } else if (isFinal) {
     app.innerHTML = renderFinalReveal();
+  } else if (isShow) {
+    app.innerHTML = renderShow();
+  } else if (isControl) {
+    app.innerHTML = renderControl();
   } else {
     app.innerHTML = renderDisplay();
   }
-    }
+}
 
     socket.on("updateTeams", (data) => {
       teams = (data || []).map((t, i) => normalizeTeam(t, i));
@@ -734,8 +930,23 @@ function resetFinalReveal() {
       draftTeams = loadLocalCopy();
       if (!draftTeams.length) draftTeams = [];
     }
+if (isShow) {
+  setInterval(render, 1000);
+}
+  async function loadQuestions() {
+  try {
+    const response = await fetch("questions.json");
+    const loadedRounds = await response.json();
 
+    slides = buildSlidesFromRounds(loadedRounds);
     render();
+  } catch (error) {
+    console.error("Could not load questions.json", error);
+    render();
+  }
+}
+
+loadQuestions();
 
     window.addTeam = addTeam;
     window.resetScores = resetScores;
