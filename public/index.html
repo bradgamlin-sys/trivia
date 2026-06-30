@@ -1,3 +1,8 @@
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +10,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bald Guy Trivia Scoreboard</title>
   <script src="/socket.io/socket.io.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Montserrat:wght@500;700;800;900&family=Rye&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #050505;
@@ -21,7 +29,7 @@
 
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: "Montserrat", Arial, Helvetica, sans-serif;
       background: var(--bg);
       color: var(--text);
     }
@@ -163,12 +171,7 @@
       font-size: 0.95rem;
     }
 
-    .two-col {
-      display: grid;
-      grid-template-columns: 1.4fr 1fr;
-      gap: 16px;
-      align-items: start;
-    }
+   
 
     .panel {
       overflow-x: auto;
@@ -232,29 +235,7 @@
       color: var(--accent);
     }
 
-    .leaderboard-mini {
-      min-width: 0;
-    }
-
-    .leaderboard-mini .board-header,
-    .leaderboard-mini .board-row {
-      grid-template-columns: 72px 1.6fr 100px;
-      padding: 12px 14px;
-    }
-
-    .leaderboard-mini .board-row {
-      font-size: clamp(1.1rem, 1.8vw, 1.55rem);
-      min-height: 62px;
-    }
-
-    .leaderboard-mini .team-name {
-      font-size: clamp(1.1rem, 1.7vw, 1.5rem);
-    }
-
-    .leaderboard-mini .rank,
-    .leaderboard-mini .total-cell {
-      font-size: clamp(1.15rem, 1.9vw, 1.65rem);
-    }
+ 
 
     @media (max-width: 1100px) {
       .two-col { grid-template-columns: 1fr; }
@@ -339,6 +320,604 @@
   height: 90px;
   width: auto;
 }
+
+
+/* Controller overlay menus */
+.control-shell {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.control-row {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 22px 0;
+}
+
+.control-button-large {
+  font-size: 2rem;
+  padding: 20px 40px;
+  margin: 6px;
+}
+
+.control-button-medium {
+  font-size: 1.25rem;
+  padding: 14px 24px;
+  margin: 6px;
+}
+
+.jump-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.jump-overlay-panel {
+  width: min(720px, 94vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #1b1b1b, #0d0d0d);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 20px 80px rgba(0,0,0,.7);
+  padding: 28px;
+  animation: overlayFadeIn .16s ease-out;
+}
+
+.jump-overlay-title {
+  color: var(--accent);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 900;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+.jump-overlay-button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 18px 20px;
+  font-size: clamp(1.2rem, 3vw, 1.7rem);
+  text-align: left;
+  border-radius: 14px;
+  background: #242424;
+  color: var(--text);
+  border: 1px solid #3d3d3d;
+}
+
+.jump-overlay-button:hover,
+.jump-overlay-button:focus {
+  background: var(--accent);
+  color: #111;
+}
+
+.jump-overlay-cancel {
+  margin-top: 22px;
+  width: 100%;
+  font-size: 1.25rem;
+  padding: 16px;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; transform: scale(.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Full-screen special pages */
+.special-page {
+  min-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+}
+
+.special-kicker {
+  color: var(--accent);
+  font-size: clamp(1.4rem, 2.5vw, 2.2rem);
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.special-title {
+  color: var(--text);
+  font-size: clamp(4rem, 9vw, 8rem);
+  font-weight: 950;
+  line-height: .95;
+  margin-bottom: 20px;
+}
+
+.special-subtitle {
+  color: var(--muted);
+  font-size: clamp(1.4rem, 3vw, 2.4rem);
+  font-weight: 700;
+  margin-bottom: 26px;
+}
+
+.category-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  width: min(900px, 92vw);
+  margin: 12px auto 0;
+  text-align: center;
+  text-align: center;
+max-width: 900px;
+}
+
+.category-line {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 16px;
+  align-items: baseline;
+  font-size: clamp(1.2rem, 2.6vw, 2rem);
+}
+
+.category-number {
+  color: var(--accent);
+  font-weight: 900;
+  text-align: right;
+}
+
+.rules-list {
+  width: min(1150px, 94vw);
+  margin: 26px auto 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rule-card {
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 18px;
+  padding: 18px 24px;
+  font-size: clamp(1.15rem, 2.2vw, 1.8rem);
+  line-height: 1.18;
+  text-align: center;
+max-width: 900px;
+}
+
+.podium-stage {
+  width: min(1200px, 94vw);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.podium-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  gap: 24px;
+  background: linear-gradient(180deg, #181818, #0d0d0d);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 22px 28px;
+  box-shadow: 0 10px 32px rgba(0,0,0,.35);
+}
+
+.podium-medal {
+  font-size: clamp(3rem, 6vw, 5rem);
+  text-align: center;
+}
+
+.podium-team {
+  text-align: left;
+  font-size: clamp(2rem, 4vw, 4rem);
+  font-weight: 950;
+}
+
+.podium-placeholder {
+  color: rgba(255,255,255,.25);
+}
+
+  
+
+/* BGOS brick stage layout */
+.stage-shell {
+  height: 100vh;
+  min-height: 0;
+  padding: 30px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 26px;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(0,0,0,.22), rgba(0,0,0,.28)),
+    url('/brick.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.stage-board {
+  height: calc(100vh - 60px);
+  min-height: 0;
+  background: rgba(0,0,0,.96);
+  border: 4px solid var(--accent);
+  box-shadow: 0 0 24px rgba(245,197,66,.25), 0 18px 60px rgba(0,0,0,.65);
+  padding: 44px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.stage-board.centered {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.stage-sidebar {
+  height: calc(100vh - 60px);
+  min-height: 0;
+  background: transparent;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 18px;
+  overflow: hidden;
+}
+
+.stage-progress {
+  background: rgba(0,0,0,.72);
+  border: 3px solid rgba(245,197,66,.85);
+  box-shadow: 0 12px 28px rgba(0,0,0,.48);
+  padding: 12px 14px;
+}
+
+.stage-progress-title {
+  color: var(--accent);
+  font-weight: 1000;
+  font-size: .9rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.stage-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stage-progress-item {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 8px;
+  align-items: center;
+  color: rgba(255,255,255,.62);
+  font-size: .9rem;
+  line-height: 1.05;
+}
+
+.stage-progress-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.55);
+  background: rgba(255,255,255,.12);
+}
+
+.stage-progress-item.complete {
+  color: rgba(255,255,255,.38);
+}
+
+.stage-progress-item.complete .stage-progress-dot {
+  background: rgba(245,197,66,.45);
+  border-color: rgba(245,197,66,.55);
+}
+
+.stage-progress-item.active {
+  color: #fff;
+  font-weight: 900;
+}
+
+.stage-progress-item.active .stage-progress-dot {
+  background: var(--accent);
+  border-color: #fff;
+  box-shadow: 0 0 12px rgba(245,197,66,.8);
+}
+
+body.show-mode {
+  overflow: hidden;
+}
+
+body.show-mode .page,
+body.tv-mode .page {
+  padding: 0;
+  overflow: hidden;
+}
+
+body.tv-mode {
+  cursor: none;
+}
+
+.stage-round-card {
+  position: relative;
+  margin-top: 12px;
+  padding: 26px 18px 28px;
+  text-align: center;
+  background: #f4efe2;
+  color: #111;
+  border: 8px solid #1d1d1d;
+  outline: 4px solid var(--accent);
+  box-shadow:
+    0 16px 32px rgba(0,0,0,.62),
+    inset 0 0 0 3px rgba(0,0,0,.18);
+  transform: rotate(.25deg);
+}
+
+.stage-round-card::before,
+.stage-round-card::after {
+  content: "";
+  position: absolute;
+  top: -28px;
+  width: 6px;
+  height: 30px;
+  background: #1d1d1d;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px rgba(245,197,66,.45);
+}
+
+.stage-round-card::before { left: 58px; }
+.stage-round-card::after { right: 58px; }
+
+.stage-round-word {
+  font-family: "Rye", "Bree Serif", Georgia, serif;
+  font-weight: 400;
+  color: #111;
+  font-size: clamp(1.8rem, 2.8vw, 3rem);
+  line-height: .9;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.stage-round-number {
+  font-family: "Bree Serif", Georgia, serif;
+  color: var(--accent);
+  font-size: clamp(5.4rem, 8.5vw, 8rem);
+  font-weight: 900;
+  line-height: .82;
+  margin: 12px 0 14px;
+  -webkit-text-stroke: 2px #111;
+  text-shadow: 0 4px 0 #111, 0 0 10px rgba(245,197,66,.4);
+}
+
+.stage-round-title {
+  font-family: "Bree Serif", Georgia, serif;
+  color: #111;
+  font-weight: 900;
+  font-size: clamp(1.55rem, 2.35vw, 2.35rem);
+  line-height: 1.02;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.stage-theme {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: #f4efe2;
+  border: 8px solid #1d1d1d;
+  outline: 4px solid rgba(245,197,66,.9);
+  box-shadow: 0 16px 32px rgba(0,0,0,.62), inset 0 0 0 3px rgba(0,0,0,.12);
+  min-height: 0;
+}
+
+.stage-theme img {
+  width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,.35));
+}
+
+.stage-title-main {
+  font-family: "Bree Serif", Georgia, serif;
+  color: #fff;
+  font-size: clamp(4rem, 9vw, 8rem);
+  font-weight: 1000;
+  line-height: .95;
+  text-transform: uppercase;
+  text-shadow: 0 5px 0 rgba(0,0,0,.85);
+}
+
+.stage-intro-title {
+  font-family: "Bree Serif", Georgia, serif;
+  color: #fff;
+  font-size: clamp(3.4rem, 6.4vw, 6.2rem);
+  font-weight: 1000;
+  line-height: .92;
+  text-transform: uppercase;
+  text-shadow: 0 5px 0 rgba(0,0,0,.85);
+  margin-bottom: 18px;
+}
+
+.stage-intro-subtitle {
+  color: var(--accent);
+  font-size: clamp(1.45rem, 2.6vw, 2.45rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 22px;
+}
+
+.stage-category-list {
+  width: min(950px, 100%);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: 10px auto 0;
+  justify-items: center;
+  text-align: center;
+}
+
+.stage-category-line {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  color: #fff;
+  font-size: clamp(1.25rem, 2.05vw, 1.95rem);
+  line-height: 1.05;
+  text-shadow: 0 2px 0 #000;
+  text-align: center;
+}
+
+.stage-category-number {
+  color: var(--accent);
+  font-weight: 1000;
+  text-align: center;
+}
+
+.stage-rules-title {
+  font-family: "Bree Serif", Georgia, serif;
+  color: #fff;
+  font-size: clamp(3rem, 6vw, 5.6rem);
+  font-weight: 1000;
+  line-height: .95;
+  text-transform: uppercase;
+  text-shadow: 0 5px 0 rgba(0,0,0,.85);
+  margin-bottom: 22px;
+}
+
+.stage-rules-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: min(1050px, 100%);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.stage-rule-line {
+  color: #fff;
+  font-size: clamp(1.15rem, 1.8vw, 1.7rem);
+  line-height: 1.14;
+  text-shadow: 0 2px 0 #000;
+  text-align: center;
+  max-width: 950px;
+}
+
+.stage-rule-bullet {
+  color: var(--accent);
+  font-weight: 1000;
+  margin-right: 12px;
+}
+
+.stage-kicker {
+  font-family: "Rye", "Bree Serif", Georgia, serif;
+  color: var(--accent);
+  font-size: clamp(2rem, 4vw, 4rem);
+  font-weight: 900;
+  margin-bottom: 18px;
+  text-transform: uppercase;
+}
+
+.stage-question-list {
+  color: #fff;
+  text-shadow: 0 2px 0 #000;
+}
+
+.stage-question-item {
+  margin-bottom: 8px;
+}
+
+.stage-answer-text {
+  color: var(--accent);
+  font-weight: 1000;
+  text-align: right;
+  white-space: nowrap;
+  text-shadow: 0 2px 0 #000;
+}
+
+.stage-image-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  width: 100%;
+}
+
+.stage-image-card {
+  position: relative;
+  background: #080808;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 10px;
+  overflow: hidden;
+  min-height: 250px;
+}
+
+.stage-image-number {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #111;
+  font-weight: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.stage-image-card img {
+  width: 100%;
+  height: 260px;
+  object-fit: contain;
+}
+
+.stage-image-answer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.95), rgba(0,0,0,.75));
+  color: #fff;
+  padding: 12px 14px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0,0,0,.8);
+}
+
+@media (max-width: 1000px) {
+  body.show-mode { overflow: auto; }
+  .stage-shell {
+    min-height: 100vh;
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+  .stage-sidebar {
+    height: auto;
+    min-height: auto;
+    grid-template-columns: 1fr 180px;
+    grid-template-rows: 1fr;
+  }
+  .stage-theme img {
+    max-height: 200px;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -351,7 +930,8 @@
     const isFinal = params.get("view") === "final";
     const isShow = params.get("view") === "show";
 const isControl = params.get("view") === "control";
-   const ROUND_COUNT = 7;
+const isTvMode = params.get("tv") === "1";
+   let ROUND_COUNT = 7;
 const STORAGE_KEY = "baldGuyTriviaScoreboardData_v1";
 
 let currentSlideIndex = 0;
@@ -384,6 +964,10 @@ const rounds = [
 function buildSlidesFromRounds(rounds) {
   let generatedSlides = [];
 
+  // ===========================
+  // QUESTION PHASE
+  // ===========================
+
   rounds.forEach(round => {
     generatedSlides.push({
       type: "title",
@@ -391,7 +975,13 @@ function buildSlidesFromRounds(rounds) {
       title: round.title
     });
 
-    const isImageRound = round.questions.some(item => item.type === "imageRound");
+    const isImageRound =
+      round.questions.length &&
+      round.questions.every(q => q.type === "imageRound");
+
+    const isMusicRound =
+      round.questions.length &&
+      round.questions.every(q => String(q.type || "").toLowerCase() === "music");
 
     if (isImageRound) {
       generatedSlides.push({
@@ -404,6 +994,9 @@ function buildSlidesFromRounds(rounds) {
           answer: item.answer
         }))
       });
+    } else if (isMusicRound) {
+      // Music rounds use the title slide only during the question phase.
+      // You play the clips live, so BGOS skips the "Song 1 / Song 2..." slides.
     } else {
       round.questions.forEach((item, index) => {
         generatedSlides.push({
@@ -418,32 +1011,68 @@ function buildSlidesFromRounds(rounds) {
     }
   });
 
+  // ===========================
+  // ANSWER PHASE
+  // ===========================
+
   rounds.forEach(round => {
+
     generatedSlides.push({
       type: "title",
       round: round.round,
       title: `${round.title} Answers`
     });
 
-    round.questions.forEach((item, index) => {
-      generatedSlides.push({
-        type: "answerQuestion",
-        round: round.round,
-        roundTitle: round.title,
+    const isImageRound =
+      round.questions.length &&
+      round.questions.every(q => q.type === "imageRound");
+
+    if (isImageRound) {
+
+      const images = round.questions.map((item, index) => ({
         number: index + 1,
-        question: item.question,
+        media: item.media,
         answer: item.answer
+      }));
+
+      for (let revealCount = 0; revealCount <= images.length; revealCount++) {
+
+        generatedSlides.push({
+          type: "imageAnswerReveal",
+          round: round.round,
+          roundTitle: round.title,
+          revealCount,
+          images
+        });
+
+      }
+
+    } else {
+
+      round.questions.forEach((item, index) => {
+
+        generatedSlides.push({
+          type: "answerQuestion",
+          round: round.round,
+          roundTitle: round.title,
+          number: index + 1,
+          question: item.question,
+          answer: item.answer
+        });
+
+        generatedSlides.push({
+          type: "answerReveal",
+          round: round.round,
+          roundTitle: round.title,
+          number: index + 1,
+          question: item.question,
+          answer: item.answer
+        });
+
       });
 
-      generatedSlides.push({
-        type: "answerReveal",
-        round: round.round,
-        roundTitle: round.title,
-        number: index + 1,
-        question: item.question,
-        answer: item.answer
-      });
-    });
+    }
+
   });
 
   return generatedSlides;
@@ -624,7 +1253,9 @@ function getOrdinalSuffix(n) {
       draftTeams = teams.map((t, i) => normalizeTeam(t, i));
       saveLocalCopy();
     }
-let finalRevealCount = 1;
+let finalRevealCount = 0;
+let podiumRevealCount = 0;
+let controlOverlayMode = null;
 
 function renderFinalReveal() {
   const ranked = ascendingTeams(teams);
@@ -642,7 +1273,7 @@ function renderFinalReveal() {
         </div>
       `;
     }).join("")
-    : `<div class="empty-state">Waiting for teams…</div>`;
+    : `<div class="empty-state">Ready for final reveal…</div>`;
 
   return `
     <div class="display-wrap">
@@ -657,11 +1288,7 @@ function renderFinalReveal() {
 </div>
       <div class="subtitle">Last Place to First Place</div>
 
-      <div class="final-reveal-controls">
-        <button onclick="revealNextTeam()">Reveal Next Team</button>
-        <button class="secondary" onclick="resetFinalReveal()">Reset Reveal</button>
-      </div>
-
+      
       <div class="final-reveal-stage">
         ${rows}
       </div>
@@ -669,16 +1296,7 @@ function renderFinalReveal() {
   `;
 }
 
-function revealNextTeam() {
-  finalRevealCount++;
-  render();
-}
 
-function resetFinalReveal() {
-  finalRevealCount = 1;
-  render();
-}
-  
     function renderDisplay() {
       const ranked = sortedTeams(teams);
       const rows = ranked.length
@@ -708,13 +1326,10 @@ function resetFinalReveal() {
             <div class="board-header">
               <div>Rank</div>
               <div>Team</div>
-              <div>R1</div>
-              <div>R2</div>
-              <div>R3</div>
-              <div>R4</div>
-              <div>R5</div>
-              <div>R6</div>
-              <div>R7</div>
+              ${Array.from({ length: ROUND_COUNT }, (_, i) =>
+
+              `<div>R${i + 1}</div>`
+            ).join("")}
               <div>Total</div>
             </div>
             ${rows}
@@ -745,10 +1360,12 @@ function resetFinalReveal() {
                   type="number"
                   inputmode="numeric"
                   step="0.5"
-                  value="${score}"
+                  value="${score || ""}"
+                  onfocus="this.select()"
                   oninput="updateDraftRound('${team.id}', ${roundIndex}, this.value)"
                   onchange="emitTeams()"
                   onblur="emitTeams()"
+                  onkeydown="moveToNextScore(event)"
                 />
               </td>
             `).join("")}
@@ -787,20 +1404,17 @@ function resetFinalReveal() {
 
           ${lastRestoreMessage ? `<div class="restore-note">${escapeHtml(lastRestoreMessage)}</div>` : ""}
 
-          <div class="two-col">
+         
             <div class="panel">
               <table>
                 <thead>
                   <tr>
                     <th>Rank</th>
                     <th>Team</th>
-                    <th>R1</th>
-                    <th>R2</th>
-                    <th>R3</th>
-                    <th>R4</th>
-                    <th>R5</th>
-                    <th>R6</th>
-                    <th>R7</th>
+                   ${Array.from({ length: ROUND_COUNT }, (_, i) =>
+
+                   `<th>R${i + 1}</th>`
+                  ).join("")}
                     <th>Total</th>
                     <th>Delete</th>
                   </tr>
@@ -811,162 +1425,625 @@ function resetFinalReveal() {
               </table>
             </div>
 
-            <div class="board leaderboard-mini">
-              <div class="board-header">
-                <div>Rank</div>
-                <div>Team</div>
-                <div>Total</div>
-              </div>
-              ${miniRows}
-            </div>
+            
           </div>
         </div>
       `;
     }
-    function getCurrentSlideIndex() {
-  return Number(localStorage.getItem("bgtCurrentSlideIndex") || 0);
+const DISPLAY_MODES = {
+  INTRO: "intro",
+  RULES: "rules",
+  GAME: "presentation",
+  SCORES: "scores",
+  FINAL: "final",
+  PODIUM: "podium"
+};
+
+function getCurrentSlideIndex() {
+  const savedIndex = Number(localStorage.getItem("bgtCurrentSlideIndex") || 0);
+  return Math.min(Math.max(savedIndex, 0), slides.length - 1);
 }
 
 function setCurrentSlideIndex(index) {
-  localStorage.setItem("bgtCurrentSlideIndex", index);
+  const safeIndex = Math.min(Math.max(Number(index) || 0, 0), slides.length - 1);
+  localStorage.setItem("bgtCurrentSlideIndex", safeIndex);
+  currentSlideIndex = safeIndex;
 }
-function renderShow() {
-  currentSlideIndex = getCurrentSlideIndex();
-  const currentSlide = slides[currentSlideIndex];
 
-  if (currentSlide.type === "title") {
-    return `
-      <div style="min-height:100vh;display:flex;justify-content:center;align-items:center;text-align:center;flex-direction:column">
-        <div style="font-size:2rem;color:#f5c542;margin-bottom:20px">
-          ROUND ${currentSlide.round}
-        </div>
-        <div style="font-size:6rem;font-weight:bold">
-          ${currentSlide.title}
-        </div>
-      </div>
-    `;
+function getDisplayMode() {
+  return localStorage.getItem("bgtDisplayMode") || DISPLAY_MODES.INTRO;
+}
+
+function setDisplayMode(mode) {
+  if (!Object.values(DISPLAY_MODES).includes(mode)) {
+    mode = DISPLAY_MODES.INTRO;
   }
-if (currentSlide.type === "imageRound") {
-  return `
-    <div style="min-height:100vh;padding:10px;text-align:center">
-      <div style="font-size:2rem;color:#f5c542;margin-bottom:25px">
-  ${currentSlide.roundTitle}
-</div>
 
-      <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:18px;max-width:1900px;margin:0 auto">
-        ${currentSlide.images.map(img => `
-          <div style="position:relative;background:#111;padding:4px;border-radius:10px">
-            <div style="position:absolute;top:8px;left:12px;font-size:1.5rem;color:#f5c542;font-weight:bold">
-              ${img.number}
-            </div>
-            <img src="/images/${img.media}" style="width:100%;height:420px;object-fit:contain">
+  localStorage.setItem("bgtDisplayMode", mode);
+  render();
+}
+function getRoundCategories() {
+  return getQuestionTitleSlides().map(slide => ({
+    round: slide.round,
+    title: String(slide.title || "")
+  }));
+}
+
+function renderIntroPage() {
+  const categories = getRoundCategories();
+  const categoryMarkup = categories.length
+    ? `
+      <div class="stage-intro-subtitle">Tonight's Categories</div>
+      <div class="stage-category-list">
+        ${categories.map(item => `
+          <div class="stage-category-line">
+            <div class="stage-category-number">${escapeHtml(item.round)}.</div>
+            <div>${escapeHtml(item.title)}</div>
           </div>
         `).join("")}
+      </div>
+    `
+    : `<div class="stage-intro-subtitle">Loading tonight's categories…</div>`;
+
+  return renderStageShell({
+    round: "7:30",
+    title: "Start Time",
+    sidebarLabel: "TONIGHT",
+    centered: true,
+    content: `
+      <div class="stage-intro-title">Bald Guy<br>Trivia</div>
+      ${categoryMarkup}
+    `
+  });
+}
+
+function renderRulesPage() {
+  const rules = [
+    "If you know the answer, write it down. Don't yell it out. If you do, I reserve the right to mock you on the microphone.",
+    "No cheating, no Googling, no consulting Bing, no asking Jeeves, no phoning a friend. Basically, don't be a dick.",
+    "If you don't know the answer, try to make us laugh. If it works, we may give you a half point. Games have been won by a half point.",
+    "Tip your servers well. Again: don't be a dick.",
+    "Most importantly, have fun and tell your friends."
+  ];
+
+  return renderStageShell({
+    round: "",
+    title: "Ground Rules",
+    sidebarLabel: "RULES",
+    centered: true,
+    content: `
+      <div class="stage-rules-title">Ground Rules</div>
+      <div class="stage-rules-list">
+        ${rules.map(rule => `
+          <div class="stage-rule-line"><span class="stage-rule-bullet">•</span>${escapeHtml(rule)}</div>
+        `).join("")}
+      </div>
+    `
+  });
+}
+
+function renderSpecialPage({ kicker = "", title = "", subtitle = "", body = "" }) {
+  return `
+    <div class="special-page">
+      ${kicker ? `<div class="special-kicker">${escapeHtml(kicker)}</div>` : ""}
+      ${title ? `<div class="special-title">${escapeHtml(title)}</div>` : ""}
+      ${subtitle ? `<div class="special-subtitle">${escapeHtml(subtitle)}</div>` : ""}
+      ${body}
+    </div>
+  `;
+}
+
+function renderPodiumPage() {
+  const ranked = sortedTeams(teams).slice(0, 3);
+  const revealCount = Number(localStorage.getItem("bgtPodiumRevealCount") || podiumRevealCount || 0);
+  const places = [
+    { place: 1, medal: "🥇", label: "1st Place", visibleAt: 3, team: ranked[0] },
+    { place: 2, medal: "🥈", label: "2nd Place", visibleAt: 2, team: ranked[1] },
+    { place: 3, medal: "🥉", label: "3rd Place", visibleAt: 1, team: ranked[2] }
+  ];
+
+  return renderSpecialPage({
+    kicker: "Final Results",
+    title: "Tonight's Podium",
+    subtitle: "Bronze. Silver. Gold.",
+    body: `
+      <div class="podium-stage">
+        ${places.map(item => {
+          const visible = revealCount >= item.visibleAt;
+          const name = item.team ? item.team.name : "No team yet";
+          return `
+            <div class="podium-row">
+              <div class="podium-medal">${item.medal}</div>
+              <div class="podium-team ${visible ? "" : "podium-placeholder"}">
+                ${visible ? `${item.label} — ${escapeHtml(name)}` : `${item.label} — ———`}
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `
+  });
+}
+
+
+function stripAnswerSuffix(title) {
+  return String(title || "").replace(/\s*Answers$/i, "");
+}
+
+function renderStageProgress(activeRound = "") {
+  const rounds = getQuestionTitleSlides();
+  const activeNumber = Number(activeRound);
+
+  if (!rounds.length || !Number.isFinite(activeNumber)) return "";
+
+  return `
+    <div class="stage-progress">
+      <div class="stage-progress-title">Tonight's Rounds</div>
+      <div class="stage-progress-list">
+        ${rounds.map(slide => {
+          const roundNumber = Number(slide.round);
+          const state = roundNumber === activeNumber
+            ? "active"
+            : roundNumber < activeNumber
+              ? "complete"
+              : "";
+
+          return `
+            <div class="stage-progress-item ${state}">
+              <div class="stage-progress-dot"></div>
+              <div>${escapeHtml(slide.round)}. ${escapeHtml(stripAnswerSuffix(slide.title))}</div>
+            </div>
+          `;
+        }).join("")}
       </div>
     </div>
   `;
 }
+
+function renderStageShell({ round = "", title = "", content = "", centered = false, sidebarLabel = "ROUND" }) {
+  const cleanTitle = stripAnswerSuffix(title);
+  const hasRound = String(round || "").trim() !== "";
+
+  return `
+    <div class="stage-shell">
+      <main class="stage-board ${centered ? "centered" : ""}">
+        ${content}
+      </main>
+
+      <aside class="stage-sidebar">
+        <div class="stage-round-card">
+          <div class="stage-round-word">${escapeHtml(sidebarLabel)}</div>
+          ${hasRound ? `<div class="stage-round-number">${escapeHtml(round)}</div>` : ""}
+          <div class="stage-round-title">${escapeHtml(cleanTitle)}</div>
+        </div>
+
+        ${renderStageProgress(round)}
+
+        <div class="stage-theme">
+          <img src="/theme.png" alt="Bald Guy Trivia weekly theme">
+        </div>
+      </aside>
+    </div>
+  `;
+}
+
+function renderImageGrid(currentSlide, revealCount = 0) {
+  const content = `
+    <div class="stage-image-grid">
+      ${currentSlide.images.map(img => {
+        const revealed = img.number <= revealCount;
+        return `
+          <div class="stage-image-card">
+            <div class="stage-image-number">${escapeHtml(img.number)}</div>
+            <img src="/images/${escapeHtml(img.media)}" alt="Picture ${escapeHtml(img.number)}">
+            ${revealed ? `<div class="stage-image-answer">${escapeHtml(img.answer)}</div>` : ""}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  return renderStageShell({
+    round: currentSlide.round,
+    title: currentSlide.roundTitle,
+    content
+  });
+}
+function renderShow() {
+  currentSlideIndex = getCurrentSlideIndex();
+  const displayMode = getDisplayMode();
+  const currentSlide = slides[currentSlideIndex];
+
+  if (displayMode === DISPLAY_MODES.INTRO) {
+    return renderIntroPage();
+  }
+
+  if (displayMode === DISPLAY_MODES.RULES) {
+    return renderRulesPage();
+  }
+
+  if (displayMode === DISPLAY_MODES.SCORES) {
+    return renderDisplay();
+  }
+
+  if (displayMode === DISPLAY_MODES.FINAL) {
+    return renderFinalReveal();
+  }
+
+  if (displayMode === DISPLAY_MODES.PODIUM) {
+    return renderPodiumPage();
+  }
+
+  if (!currentSlide) {
+    return `<div class="empty-state">No slide found.</div>`;
+  }
+
+  if (currentSlide.type === "title") {
+    return renderStageShell({
+      round: currentSlide.round,
+      title: currentSlide.title,
+      centered: true,
+      content: `
+        <div class="stage-kicker">Round ${escapeHtml(currentSlide.round)}</div>
+        <div class="stage-title-main">${escapeHtml(currentSlide.title)}</div>
+      `
+    });
+  }
+
+  if (currentSlide.type === "imageRound") {
+  return renderImageGrid(currentSlide, 0);
+}
+
+if (currentSlide.type === "imageAnswerReveal") {
+  return renderImageGrid(
+    currentSlide,
+    currentSlide.revealCount
+  );
+}
+
   const isAnswerMode =
     currentSlide.type === "answerQuestion" ||
     currentSlide.type === "answerReveal";
 
-const visibleSlides = slides.filter((slide, index) => {
-  if (index > currentSlideIndex) return false;
-  if (slide.round !== currentSlide.round) return false;
+  const visibleSlides = slides.filter((slide, index) => {
+    if (index > currentSlideIndex) return false;
+    if (slide.round !== currentSlide.round) return false;
 
-  if (!isAnswerMode) {
-    return slide.type === "question";
-  }
+    if (!isAnswerMode) {
+      return slide.type === "question";
+    }
 
-  return (
-    slide.type === "answerQuestion" ||
-    slide.type === "answerReveal"
+    return slide.type === "answerQuestion" || slide.type === "answerReveal";
+  });
+const visibleCount = visibleSlides.length;
+
+let showFontSize = "2.4rem";
+
+if (visibleCount >= 10) showFontSize = "1.8rem";
+else if (visibleCount >= 8) showFontSize = "1.65rem";
+else if (visibleCount >= 6) showFontSize = "1.85rem";
+else if (visibleCount >= 4) showFontSize = "2.1rem";
+  const roundTitle = currentSlide.roundTitle || currentSlide.title || "";
+  const content = `
+    <div class="question-container stage-question-list" style="font-size:3rem;line-height:.85">
+      ${visibleSlides.map(slide => {
+        const isAnswerReveal = slide.type === "answerReveal";
+        return `
+          <div class="stage-question-item">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:35px">
+              <div style="flex:1;visibility:${isAnswerReveal ? "hidden" : "visible"}">
+                <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong> ${escapeHtml(slide.question)}
+              </div>
+
+              ${isAnswerReveal ? `<div class="stage-answer-text">${escapeHtml(slide.answer)}</div>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  return renderStageShell({
+    round: currentSlide.round,
+    title: roundTitle,
+    content
+  });
+}
+
+function getQuestionTitleSlides() {
+  return slides.filter(slide =>
+    slide.type === "title" &&
+    !String(slide.title || "").endsWith("Answers")
   );
-});
+}
+
+function getAnswerTitleSlides() {
+  return slides.filter(slide =>
+    slide.type === "title" &&
+    String(slide.title || "").endsWith("Answers")
+  );
+}
+
+function renderJumpOverlay() {
+  if (!controlOverlayMode) return "";
+
+  const isAnswers = controlOverlayMode === "answers";
+  const title = isAnswers ? "Answers" : "Questions";
+  const titleSlides = isAnswers ? getAnswerTitleSlides() : getQuestionTitleSlides();
 
   return `
-    <div style="min-height:100vh;padding:60px;text-align:left">
-      <div style="font-size:2rem;color:#f5c542;margin-bottom:30px;text-align:center">
-        ROUND ${currentSlide.round} ${isAnswerMode ? "ANSWERS" : ""}
-      </div>
+    <div class="jump-overlay-backdrop" onclick="closeJumpOverlay()">
+      <div class="jump-overlay-panel" onclick="event.stopPropagation()">
+        <div class="jump-overlay-title">${title}</div>
 
-      <div style="font-size:clamp(1.2rem, 2.6vw, 2.4rem);max-width:1400px;margin:0 auto;line-height:1.18">
-       ${visibleSlides.map(slide => `
-  <div style="margin-bottom:18px">
-    ${
-      slide.type === "answerReveal"
-        ? `<div style="color:#f5c542;margin-left:45px"><strong>A.</strong> ${slide.answer}</div>`
-        : `<strong>${slide.number}.</strong> ${slide.question}`
-    }
-  </div>
-`).join("")}
+        ${titleSlides.map(titleSlide => {
+          const index = slides.indexOf(titleSlide);
+          const cleanTitle = String(titleSlide.title || "").replace(/\s*Answers$/, "");
+
+          return `
+            <button class="jump-overlay-button" onclick="jumpToSlideFromOverlay(${index})">
+              Round ${escapeHtml(titleSlide.round)} — ${escapeHtml(cleanTitle)}
+            </button>
+          `;
+        }).join("")}
+
+        <button class="secondary jump-overlay-cancel" onclick="closeJumpOverlay()">
+          Cancel
+        </button>
       </div>
     </div>
   `;
 }
 
+function getDisplayModeLabel(mode) {
+  switch (mode) {
+    case DISPLAY_MODES.INTRO: return "INTRO";
+    case DISPLAY_MODES.RULES: return "RULES";
+    case DISPLAY_MODES.GAME: return "GAME";
+    case DISPLAY_MODES.SCORES: return "SCORES";
+    case DISPLAY_MODES.FINAL: return "FINAL REVEAL";
+    case DISPLAY_MODES.PODIUM: return "PODIUM";
+    default: return String(mode || "").toUpperCase();
+  }
+}
+
+function getCurrentLabel(slide, displayMode) {
+  if (displayMode === DISPLAY_MODES.INTRO) return "Intro Screen";
+  if (displayMode === DISPLAY_MODES.RULES) return "Rules Screen";
+  if (displayMode === DISPLAY_MODES.SCORES) return "Live Leaderboard";
+  if (displayMode === DISPLAY_MODES.FINAL) return `Final Reveal — ${finalRevealCount} revealed`;
+  if (displayMode === DISPLAY_MODES.PODIUM) return `Podium — ${podiumRevealCount}/3 medals revealed`;
+  if (!slide) return "No slide loaded";
+
+  if (slide.type === "title") return `Round ${slide.round} — ${escapeHtml(slide.title)}`;
+  if (slide.type === "imageAnswerReveal") return `Round ${slide.round} — Reveal ${slide.revealCount}/${slide.images.length}`;
+  if (slide.type === "imageRound") return `Round ${slide.round} — Picture Round`;
+
+  return `${escapeHtml(slide.type.toUpperCase())} ${escapeHtml(slide.number || "")}`;
+}
+
 function renderControl() {
   currentSlideIndex = getCurrentSlideIndex();
-const slide = slides[currentSlideIndex];
-const roundTitles = slides.filter(
-  slide => slide.type === "title"
-);
+  const slide = slides[currentSlideIndex];
+  const displayMode = getDisplayMode();
+  const isGameMode = displayMode === DISPLAY_MODES.GAME;
+  const isFinalMode = displayMode === DISPLAY_MODES.FINAL;
+  const isPodiumMode = displayMode === DISPLAY_MODES.PODIUM;
+
   return `
-    <div style="padding:40px;text-align:center">
+    <div class="control-shell">
       <h1>Show Controller</h1>
 
-      <div style="font-size:1.5rem;margin:30px">
-  Slide ${currentSlideIndex + 1} of ${slides.length}
-</div>
+      <div style="font-size:1.2rem;color:#f5c542;margin:20px;font-weight:800">
+        Display Mode: ${escapeHtml(getDisplayModeLabel(displayMode))}
+      </div>
 
-<div style="font-size:1.5rem;margin:30px">
-  Current: Round ${slide.round}
-  ${
-    slide.type === "title"
-      ? slide.title
-      : `${slide.type.toUpperCase()} ${slide.number}`
-  }
-<div>
-  <div style="margin:30px auto;max-width:900px">
-  <h2>Jump to Section</h2>
+      <div style="max-width:700px;margin:20px auto">
+        <div style="
+          display:flex;
+          justify-content:space-between;
+          font-size:1.2rem;
+          margin-bottom:8px;
+          color:#f5c542;
+          font-weight:700;
+        ">
+          <span>Slide ${currentSlideIndex + 1}</span>
+          <span>${slides.length}</span>
+        </div>
 
-  ${roundTitles.map(titleSlide => {
-    const index = slides.indexOf(titleSlide);
-    return `
-      <button onclick="jumpToSlide(${index})" style="font-size:1.1rem;padding:12px 18px;margin:6px">
-        ${titleSlide.title}
-      </button>
-    `;
-  }).join("")}
-</div>
-  <button onclick="previousSlide()" style="font-size:2rem;padding:20px 40px;margin:10px">
-    ◀ Previous
-  </button>
+        <div style="
+          height:18px;
+          background:#222;
+          border-radius:999px;
+          overflow:hidden;
+          border:1px solid #444;
+        ">
+          <div style="
+            height:100%;
+            width:${((currentSlideIndex + 1) / slides.length) * 100}%;
+            background:#f5c542;
+            transition:width .25s ease;
+          "></div>
+        </div>
+      </div>
 
-  <button onclick="nextSlide()" style="font-size:2rem;padding:20px 40px;margin:10px">
-    Next ▶
-  </button>
-</div>
+      <div style="font-size:1.5rem;margin:20px">
+        Current: ${getCurrentLabel(slide, displayMode)}
+      </div>
 
+      <div class="control-row">
+        <button onclick="setDisplayMode('intro')" class="control-button-medium">🏠 Intro</button>
+        <button onclick="setDisplayMode('rules')" class="control-button-medium">📜 Rules</button>
+        <button onclick="startGame()" class="control-button-medium">▶ Start Game</button>
+      </div>
+
+      <div class="control-row">
+        <button onclick="openPresentationMode()" class="control-button-medium">📺 Open TV Display</button>
+        <button onclick="toggleFullscreen()" class="control-button-medium">⛶ Full Screen</button>
+      </div>
+
+      <div class="control-row">
+        <button onclick="setDisplayMode('presentation')" class="control-button-medium">🎮 Game</button>
+        <button onclick="setDisplayMode('scores')" class="control-button-medium">📊 Scores</button>
+        <button onclick="setDisplayMode('final')" class="control-button-medium">🏆 Final Reveal</button>
+        <button onclick="setDisplayMode('podium')" class="control-button-medium">🥇 Podium</button>
+      </div>
+
+      ${
+        isFinalMode
+          ? `
+            <div class="control-row">
+              <button onclick="revealNextTeam()" class="control-button-large">Reveal Next Team</button>
+              <button class="secondary control-button-large" onclick="resetFinalReveal()">Reset Reveal</button>
+            </div>
+          `
+        : isPodiumMode
+          ? `
+            <div class="control-row">
+              <button onclick="revealNextPodium()" class="control-button-large">Reveal Next Medal</button>
+              <button class="secondary control-button-large" onclick="resetPodium()">Reset Podium</button>
+            </div>
+          `
+          : `
+            <div class="control-row">
+              <button onclick="previousSlide()" class="control-button-large">◀ Previous</button>
+              <button onclick="nextSlide()" class="control-button-large">Next ▶</button>
+            </div>
+          `
+      }
+
+      ${isGameMode ? `
+        <div class="control-row">
+          <button onclick="showJumpOverlay('questions')" class="control-button-medium">Questions</button>
+          <button onclick="showJumpOverlay('answers')" class="control-button-medium">Answers</button>
+        </div>
+      ` : ""}
+
+      ${renderJumpOverlay()}
+    </div>
   `;
 }
+
+function openPresentationMode() {
+  const url = `${window.location.origin}${window.location.pathname}?view=show&tv=1`;
+  window.open(url, "bgosPresentation", "popup=yes,width=1600,height=900");
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen?.();
+  } else {
+    document.exitFullscreen?.();
+  }
+}
+
 function nextSlide() {
-  currentSlideIndex = getCurrentSlideIndex();
-  currentSlideIndex = Math.min(currentSlideIndex + 1, slides.length - 1);
-  setCurrentSlideIndex(currentSlideIndex);
+  setCurrentSlideIndex(getCurrentSlideIndex() + 1);
   render();
 }
 
 function previousSlide() {
-  currentSlideIndex = getCurrentSlideIndex();
-  currentSlideIndex = Math.max(currentSlideIndex - 1, 0);
-  setCurrentSlideIndex(currentSlideIndex);
+  setCurrentSlideIndex(getCurrentSlideIndex() - 1);
   render();
 }
+
 function jumpToSlide(index) {
   setCurrentSlideIndex(index);
-  currentSlideIndex = index;
+  setDisplayMode(DISPLAY_MODES.GAME);
+}
+
+function startGame() {
+  closeJumpOverlay(false);
+
+  const firstTitleIndex = slides.findIndex(slide =>
+    slide.type === "title" &&
+    !String(slide.title || "").endsWith("Answers")
+  );
+
+  jumpToSlide(firstTitleIndex >= 0 ? firstTitleIndex : 0);
+}
+
+function showJumpOverlay(mode) {
+  controlOverlayMode = mode;
   render();
+}
+
+function closeJumpOverlay(shouldRender = true) {
+  controlOverlayMode = null;
+  if (shouldRender) render();
+}
+
+function jumpToSlideFromOverlay(index) {
+  controlOverlayMode = null;
+  jumpToSlide(index);
+}
+
+function jumpToQuestions() {
+  showJumpOverlay("questions");
+}
+
+function jumpToAnswers() {
+  showJumpOverlay("answers");
+}
+
+function revealNextTeam() {
+  finalRevealCount++;
+  socket.emit("finalRevealCount", finalRevealCount);
+  render();
+}
+
+function resetFinalReveal() {
+  finalRevealCount = 0;
+  socket.emit("finalRevealCount", finalRevealCount);
+  render();
+}
+
+function revealNextPodium() {
+  if (podiumRevealCount < 3) {
+    podiumRevealCount++;
+  }
+  localStorage.setItem("bgtPodiumRevealCount", podiumRevealCount);
+  socket.emit("podiumRevealCount", podiumRevealCount);
+  render();
+}
+
+function resetPodium() {
+  podiumRevealCount = 0;
+  localStorage.setItem("bgtPodiumRevealCount", podiumRevealCount);
+  socket.emit("podiumRevealCount", podiumRevealCount);
+  render();
+}
+function moveToNextScore(event) {
+  if (event.key !== "Enter") return;
+
+  event.preventDefault();
+
+  emitTeams();
+
+  const inputs = [...document.querySelectorAll('input[type="number"]')];
+  const currentIndex = inputs.indexOf(event.target);
+
+  if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
+    inputs[currentIndex + 1].focus();
+    inputs[currentIndex + 1].select();
+  }
+}
+function fitQuestionText() {
+  if (!isShow) return;
+
+  const container = document.querySelector(".question-container");
+  if (!container) return;
+
+  const board = container.closest(".stage-board") || document.body;
+  const availableHeight = Math.max(200, board.clientHeight - 20);
+
+  let size = 3.0;
+  container.style.fontSize = `${size}rem`;
+
+  while (container.scrollHeight > availableHeight && size > 1) {
+    size -= 0.05;
+    container.style.fontSize = `${size}rem`;
+  }
 }
   function render() {
   const app = document.getElementById("app");
@@ -982,7 +2059,19 @@ function jumpToSlide(index) {
   } else {
     app.innerHTML = renderDisplay();
   }
+  fitQuestionText();
 }
+
+    socket.on("finalRevealCount", (count) => {
+      finalRevealCount = Number(count) || 0;
+      render();
+    });
+
+    socket.on("podiumRevealCount", (count) => {
+      podiumRevealCount = Number(count) || 0;
+      localStorage.setItem("bgtPodiumRevealCount", podiumRevealCount);
+      render();
+    });
 
     socket.on("updateTeams", (data) => {
       teams = (data || []).map((t, i) => normalizeTeam(t, i));
@@ -1013,15 +2102,60 @@ if (isShow) {
   setInterval(render, 1000);
 }
 function parseCSV(csvText) {
-  const lines = csvText.trim().split("\n");
-  const headers = lines[0].split(",").map(h => h.trim());
+  const rows = [];
+  let currentRow = [];
+  let currentValue = "";
+  let insideQuotes = false;
 
-  return lines.slice(1).map(line => {
-    const values = line.split(",").map(v => v.trim());
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    const nextChar = csvText[i + 1];
+
+    if (char === '"') {
+      if (insideQuotes && nextChar === '"') {
+        currentValue += '"';
+        i++;
+      } else {
+        insideQuotes = !insideQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !insideQuotes) {
+      currentRow.push(currentValue.trim());
+      currentValue = "";
+      continue;
+    }
+
+    if ((char === "\n" || char === "\r") && !insideQuotes) {
+      if (char === "\r" && nextChar === "\n") i++;
+      currentRow.push(currentValue.trim());
+      currentValue = "";
+
+      if (currentRow.some(value => value !== "")) {
+        rows.push(currentRow);
+      }
+
+      currentRow = [];
+      continue;
+    }
+
+    currentValue += char;
+  }
+
+  currentRow.push(currentValue.trim());
+  if (currentRow.some(value => value !== "")) {
+    rows.push(currentRow);
+  }
+
+  const headers = (rows.shift() || []).map(header => header.trim());
+
+  return rows.map(values => {
     const row = {};
 
     headers.forEach((header, index) => {
-      row[header.charAt(0).toLowerCase() + header.slice(1)] = values[index] || "";
+      const key = header.charAt(0).toLowerCase() + header.slice(1);
+      row[key] = values[index] || "";
     });
 
     return row;
@@ -1034,6 +2168,7 @@ const csvText = await response.text();
 const loadedRows = parseCSV(csvText);
 
 slides = buildSlidesFromRows(loadedRows);
+ROUND_COUNT = Math.max(1, ...loadedRows.map(r => Number(r.roundOrder) || 0));
     render();
   } catch (error) {
     console.error("Could not load questions.json", error);
@@ -1042,15 +2177,63 @@ slides = buildSlidesFromRows(loadedRows);
 }
 
 loadQuestions();
+if (isTvMode) document.body.classList.add("tv-mode");
+podiumRevealCount = Number(localStorage.getItem("bgtPodiumRevealCount") || 0);
 
+document.addEventListener("keydown", (event) => {
+  if ((event.key === "f" || event.key === "F") && (isShow || isControl)) {
+    toggleFullscreen();
+    return;
+  }
+
+  if (!isControl) return;
+  if (event.key === "Escape" && controlOverlayMode) {
+    closeJumpOverlay();
+  }
+});
+
+let touchStartX = 0;
+
+document.addEventListener("touchstart", (e) => {
+  if (!isControl) return;
+
+  touchStartX = e.changedTouches[0].clientX;
+});
+
+document.addEventListener("touchend", (e) => {
+  if (!isControl) return;
+
+  const touchEndX = e.changedTouches[0].clientX;
+  const distance = touchEndX - touchStartX;
+
+  if (Math.abs(distance) < 75) return;
+
+  if (distance < 0) {
+    nextSlide();      // swipe left
+  } else {
+    previousSlide();  // swipe right
+  }
+});
     window.addTeam = addTeam;
     window.resetScores = resetScores;
     window.updateDraftName = updateDraftName;
     window.updateDraftRound = updateDraftRound;
     window.deleteTeam = deleteTeam;
     window.emitTeams = emitTeams;
-      window.revealNextTeam = revealNextTeam;
-window.resetFinalReveal = resetFinalReveal;
+    window.revealNextTeam = revealNextTeam;
+    window.resetFinalReveal = resetFinalReveal;
+    window.revealNextPodium = revealNextPodium;
+    window.resetPodium = resetPodium;
+    window.moveToNextScore = moveToNextScore;
+    window.startGame = startGame;
+    window.openPresentationMode = openPresentationMode;
+    window.toggleFullscreen = toggleFullscreen;
+    window.jumpToQuestions = jumpToQuestions;
+    window.jumpToAnswers = jumpToAnswers;
+    window.showJumpOverlay = showJumpOverlay;
+    window.closeJumpOverlay = closeJumpOverlay;
+    window.jumpToSlideFromOverlay = jumpToSlideFromOverlay;
   </script>
 </body>
 </html>
+
