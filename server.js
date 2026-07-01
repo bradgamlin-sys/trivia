@@ -24,7 +24,7 @@ io.on("connection", (socket) => {
   socket.emit("gameState", gameState);
 
   socket.on("updateTeams", (updatedTeams) => {
-    teams = updatedTeams;
+    teams = updatedTeams || [];
     io.emit("updateTeams", teams);
   });
 
@@ -32,6 +32,17 @@ io.on("connection", (socket) => {
     gameState = {
       ...gameState,
       ...updatedState
+    };
+
+    io.emit("gameState", gameState);
+  });
+
+  socket.on("resetGameState", () => {
+    gameState = {
+      displayMode: "intro",
+      currentSlideIndex: 0,
+      finalRevealCount: 0,
+      podiumRevealCount: 0
     };
 
     io.emit("gameState", gameState);
