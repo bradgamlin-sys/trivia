@@ -346,6 +346,26 @@
   margin: 6px;
 }
 
+.control-button-prev {
+  background: #b83a3a;
+  color: #fff;
+  min-width: 220px;
+  padding: 20px 34px;
+}
+
+.control-button-next {
+  background: #28a745;
+  color: #fff;
+  min-width: 290px;
+  padding: 22px 52px;
+  font-size: 2.15rem;
+}
+
+.control-button-prev:hover,
+.control-button-next:hover {
+  filter: brightness(1.08);
+}
+
 .control-button-medium {
   font-size: 1.25rem;
   padding: 14px 24px;
@@ -2160,8 +2180,8 @@ function renderControl() {
         !isFinalMode && !isPodiumMode
           ? `
             <div class="control-row">
-              <button onclick="previousSlide()" class="control-button-large">◀ Previous</button>
-              <button onclick="nextSlide()" class="control-button-large">Next ▶</button>
+              <button onclick="previousSlide()" class="control-button-large control-button-prev">◀ Previous</button>
+              <button onclick="nextSlide()" class="control-button-large control-button-next">Next ▶</button>
             </div>
           `
           : ""
@@ -2545,4 +2565,3 @@ document.addEventListener("touchend", (e) => {
   </script>
 </body>
 </html>
-
