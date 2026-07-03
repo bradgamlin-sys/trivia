@@ -5,6 +5,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1379,6 +1380,26 @@ let gameState = {
   podiumRevealCount: 0
 };
 
+const BGOS = {
+  name: "Bald Guy Operating System",
+  version: "v1.2-question-flow",
+  sprint: "Question Spotlight Flow",
+  settings: {
+    spotlightFlowEnabled: true,
+    fixedQuestionListSize: true
+  },
+  get slides() {
+    return slides;
+  },
+  get teams() {
+    return teams;
+  },
+  get gameState() {
+    return gameState;
+  }
+};
+
+
 function clampSlideIndex(index) {
   return Math.min(Math.max(Number(index) || 0, 0), Math.max(slides.length - 1, 0));
 }
@@ -1862,6 +1883,114 @@ function renderPrintPage() {
   `;
 }
 
+function renderTitleSlide(currentSlide) {
+  return renderStageShell({
+    round: currentSlide.round,
+    title: currentSlide.title,
+    centered: true,
+    content: `
+      <div class="stage-kicker">Round ${escapeHtml(currentSlide.round)}</div>
+      <div class="stage-title-main">${escapeHtml(currentSlide.title)}</div>
+    `
+  });
+}
+
+function renderQuestionHeroSlide(currentSlide) {
+  return renderStageShell({
+    round: currentSlide.round,
+    title: currentSlide.roundTitle,
+    centered: true,
+    content: `
+      <div class="stage-kicker">Question ${escapeHtml(currentSlide.number)}</div>
+      <div class="question-container stage-question-list" style="font-size:clamp(3rem,5.4vw,5.4rem);line-height:1.05;max-width:1100px;">
+        <strong style="color:var(--accent)">${escapeHtml(currentSlide.number)}.</strong>
+        ${escapeHtml(currentSlide.question)}
+      </div>
+    `
+  });
+}
+
+function renderQuestionListSlide(currentSlide) {
+  const visibleSlides = slides.filter((slide, index) =>
+    index <= currentSlideIndex &&
+    slide.round === currentSlide.round &&
+    slide.type === "questionList"
+  );
+
+  const content = `
+    <div class="stage-question-list" style="font-size:1.55rem;line-height:1.15">
+      ${visibleSlides.map(slide => `
+        <div class="stage-question-item">
+          <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong>
+          ${escapeHtml(slide.question)}
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  return renderStageShell({
+    round: currentSlide.round,
+    title: currentSlide.roundTitle,
+    content
+  });
+}
+
+function renderImageRoundSlide(currentSlide) {
+  return renderImageGrid(currentSlide, 0);
+}
+
+function renderImageAnswerRevealSlide(currentSlide) {
+  return renderImageGrid(
+    currentSlide,
+    currentSlide.revealCount
+  );
+}
+
+function renderAnswerSlide(currentSlide) {
+  const visibleSlides = slides.filter((slide, index) => {
+    if (index > currentSlideIndex) return false;
+    if (slide.round !== currentSlide.round) return false;
+
+    return slide.type === "answerQuestion" || slide.type === "answerReveal";
+  });
+
+  const roundTitle = currentSlide.roundTitle || currentSlide.title || "";
+  const content = `
+    <div class="question-container stage-question-list" style="font-size:3rem;line-height:.85">
+      ${visibleSlides.map(slide => {
+        const isAnswerReveal = slide.type === "answerReveal";
+        return `
+          <div class="stage-question-item">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:35px">
+              <div style="flex:1;visibility:${isAnswerReveal ? "hidden" : "visible"}">
+                <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong> ${escapeHtml(slide.question)}
+              </div>
+
+              ${isAnswerReveal ? `<div class="stage-answer-text">${escapeHtml(slide.answer)}</div>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  return renderStageShell({
+    round: currentSlide.round,
+    title: roundTitle,
+    content
+  });
+}
+
+const slideRenderers = {
+  title: renderTitleSlide,
+  questionHero: renderQuestionHeroSlide,
+  questionList: renderQuestionListSlide,
+  imageRound: renderImageRoundSlide,
+  imageAnswerReveal: renderImageAnswerRevealSlide,
+  answerQuestion: renderAnswerSlide,
+  answerReveal: renderAnswerSlide
+};
+
 function renderShow() {
   currentSlideIndex = getCurrentSlideIndex();
   const displayMode = getDisplayMode();
@@ -1890,115 +2019,14 @@ function renderShow() {
   if (!currentSlide) {
     return `<div class="empty-state">No slide found.</div>`;
   }
-if (currentSlide.type === "questionHero") {
-  return renderStageShell({
-    round: currentSlide.round,
-    title: currentSlide.roundTitle,
-    centered: true,
-    content: `
-      <div class="stage-kicker">Question ${escapeHtml(currentSlide.number)}</div>
-<div class="question-container stage-question-list" style="font-size:clamp(3rem,5.4vw,5.4rem);line-height:1.05;max-width:1100px;">
-  <strong style="color:var(--accent)">${escapeHtml(currentSlide.number)}.</strong>
-  ${escapeHtml(currentSlide.question)}
-</div>
-    `
-  });
-}
 
-if (currentSlide.type === "questionList") {
-  const visibleSlides = slides.filter((slide, index) =>
-    index <= currentSlideIndex &&
-    slide.round === currentSlide.round &&
-    slide.type === "questionList"
-  );
+  const renderer = slideRenderers[currentSlide.type];
 
-  const content = `
-    <div class="stage-question-list" style="font-size:1.55rem;line-height:1.15">
-      ${visibleSlides.map(slide => `
-        <div class="stage-question-item">
-          <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong>
-          ${escapeHtml(slide.question)}
-        </div>
-      `).join("")}
-    </div>
-  `;
-
-  return renderStageShell({
-    round: currentSlide.round,
-    title: currentSlide.roundTitle,
-    content
-  });
-}
-  if (currentSlide.type === "title") {
-    return renderStageShell({
-      round: currentSlide.round,
-      title: currentSlide.title,
-      centered: true,
-      content: `
-        <div class="stage-kicker">Round ${escapeHtml(currentSlide.round)}</div>
-        <div class="stage-title-main">${escapeHtml(currentSlide.title)}</div>
-      `
-    });
+  if (renderer) {
+    return renderer(currentSlide);
   }
 
-  if (currentSlide.type === "imageRound") {
-  return renderImageGrid(currentSlide, 0);
-}
-
-if (currentSlide.type === "imageAnswerReveal") {
-  return renderImageGrid(
-    currentSlide,
-    currentSlide.revealCount
-  );
-}
-
-  const isAnswerMode =
-    currentSlide.type === "answerQuestion" ||
-    currentSlide.type === "answerReveal";
-
-  const visibleSlides = slides.filter((slide, index) => {
-    if (index > currentSlideIndex) return false;
-    if (slide.round !== currentSlide.round) return false;
-
-    if (!isAnswerMode) {
-      return slide.type === "question";
-    }
-
-    return slide.type === "answerQuestion" || slide.type === "answerReveal";
-  });
-const visibleCount = visibleSlides.length;
-
-let showFontSize = "2.4rem";
-
-if (visibleCount >= 10) showFontSize = "1.8rem";
-else if (visibleCount >= 8) showFontSize = "1.65rem";
-else if (visibleCount >= 6) showFontSize = "1.85rem";
-else if (visibleCount >= 4) showFontSize = "2.1rem";
-  const roundTitle = currentSlide.roundTitle || currentSlide.title || "";
-  const content = `
-    <div class="question-container stage-question-list" style="font-size:3rem;line-height:.85">
-      ${visibleSlides.map(slide => {
-        const isAnswerReveal = slide.type === "answerReveal";
-        return `
-          <div class="stage-question-item">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:35px">
-              <div style="flex:1;visibility:${isAnswerReveal ? "hidden" : "visible"}">
-                <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong> ${escapeHtml(slide.question)}
-              </div>
-
-              ${isAnswerReveal ? `<div class="stage-answer-text">${escapeHtml(slide.answer)}</div>` : ""}
-            </div>
-          </div>
-        `;
-      }).join("")}
-    </div>
-  `;
-
-  return renderStageShell({
-    round: currentSlide.round,
-    title: roundTitle,
-    content
-  });
+  return `<div class="empty-state">No renderer found for slide type: ${escapeHtml(currentSlide.type)}</div>`;
 }
 
 function getQuestionTitleSlides() {
