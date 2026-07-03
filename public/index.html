@@ -920,6 +920,107 @@ body.tv-mode {
   }
 }
 
+
+/* Printable picture round page */
+.print-page {
+  background: #fff;
+  color: #000;
+  min-height: 100vh;
+  padding: 0.25in;
+}
+
+.print-sheet {
+  width: 13.5in;
+  height: 8in;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 0.08in;
+  page-break-after: always;
+}
+
+.print-picture-card {
+  border: 1px solid #000;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  break-inside: avoid;
+}
+
+.print-picture-box {
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.03in;
+}
+
+.print-picture-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.print-answer-line {
+  font-size: 14pt;
+  font-weight: 800;
+  padding: 0.03in 0.06in 0.05in;
+  white-space: nowrap;
+  color: #000;
+}
+
+.print-empty-card {
+  border: 1px dashed #777;
+}
+
+.print-toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  background: #111;
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+@page {
+  size: legal landscape;
+  margin: 0.25in;
+}
+
+@media print {
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .page {
+    padding: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .print-toolbar {
+    display: none !important;
+  }
+
+  .print-page {
+    padding: 0 !important;
+  }
+
+  .print-sheet {
+    width: 13.5in;
+    height: 8in;
+    margin: 0;
+    page-break-after: always;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -932,6 +1033,7 @@ body.tv-mode {
     const isFinal = params.get("view") === "final";
     const isShow = params.get("view") === "show";
 const isControl = params.get("view") === "control";
+const isPrint = params.get("view") === "print";
 const isTvMode = params.get("tv") === "1";
    let ROUND_COUNT = 7;
 const STORAGE_KEY = "baldGuyTriviaScoreboardData_v1";
@@ -1001,15 +1103,26 @@ function buildSlidesFromRounds(rounds) {
       // You play the clips live, so BGOS skips the "Song 1 / Song 2..." slides.
     } else {
       round.questions.forEach((item, index) => {
-        generatedSlides.push({
-          type: "question",
-          round: round.round,
-          roundTitle: round.title,
-          number: index + 1,
-          question: item.question,
-          answer: item.answer
-        });
-      });
+  const questionNumber = index + 1;
+
+  generatedSlides.push({
+    type: "questionHero",
+    round: round.round,
+    roundTitle: round.title,
+    number: questionNumber,
+    question: item.question,
+    answer: item.answer
+  });
+
+  generatedSlides.push({
+    type: "questionList",
+    round: round.round,
+    roundTitle: round.title,
+    number: questionNumber,
+    question: item.question,
+    answer: item.answer
+  });
+});
     }
   });
 
@@ -1587,14 +1700,7 @@ function renderPodiumPage() {
             <div class="podium-row">
               <div class="podium-medal">${item.medal}</div>
               <div class="podium-team ${visible ? "" : "podium-placeholder"}">
-               ${visible
-  ? `
-      ${item.label} — ${escapeHtml(name)}
-      <div style="font-size:.65em;color:var(--accent);margin-top:6px;">
-        ${item.team.total} points
-      </div>
-    `
-  : `${item.label} — ———`}
+                ${visible ? `${item.label} — ${escapeHtml(name)}` : `${item.label} — ———`}
               </div>
             </div>
           `;
@@ -1688,6 +1794,74 @@ function renderImageGrid(currentSlide, revealCount = 0) {
     content
   });
 }
+
+function chunkArray(items, size) {
+  const chunks = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function getPrintableImages() {
+  const imageSlides = slides.filter(slide => slide.type === "imageRound");
+  return imageSlides.flatMap(slide => (slide.images || []).map(img => ({
+    ...img,
+    round: slide.round,
+    roundTitle: slide.roundTitle
+  })));
+}
+
+function renderPrintPage() {
+  const images = getPrintableImages();
+
+  if (!images.length) {
+    return `
+      <div class="print-page">
+        <div class="print-toolbar">
+          <button onclick="window.print()">Print</button>
+        </div>
+        <div style="text-align:center;padding:40px;font-size:24px;color:#000;">
+          No picture-round images found. Make sure the spreadsheet Type column says imageRound.
+        </div>
+      </div>
+    `;
+  }
+
+  const pages = chunkArray(images, 10);
+
+  return `
+    <div class="print-page">
+      <div class="print-toolbar">
+        <button onclick="window.print()">Print Picture Round</button>
+        <button class="secondary" onclick="history.back()">Back</button>
+      </div>
+
+      ${pages.map(pageImages => {
+        const filled = [...pageImages];
+        while (filled.length < 10) filled.push(null);
+
+        return `
+          <div class="print-sheet">
+            ${filled.map((img, index) => {
+              if (!img) return `<div class="print-picture-card print-empty-card"></div>`;
+
+              return `
+                <div class="print-picture-card">
+                  <div class="print-picture-box">
+                    <img src="/images/${escapeHtml(img.media)}" alt="Picture ${escapeHtml(img.number)}">
+                  </div>
+                  <div class="print-answer-line">${escapeHtml(img.number)} ____________________</div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
 function renderShow() {
   currentSlideIndex = getCurrentSlideIndex();
   const displayMode = getDisplayMode();
@@ -1716,7 +1890,44 @@ function renderShow() {
   if (!currentSlide) {
     return `<div class="empty-state">No slide found.</div>`;
   }
+if (currentSlide.type === "questionHero") {
+  return renderStageShell({
+    round: currentSlide.round,
+    title: currentSlide.roundTitle,
+    centered: true,
+    content: `
+      <div class="stage-kicker">Question ${escapeHtml(currentSlide.number)}</div>
+      <div class="question-container stage-question-list" style="font-size:clamp(3rem,6vw,6rem);line-height:1;">
+        ${escapeHtml(currentSlide.question)}
+      </div>
+    `
+  });
+}
 
+if (currentSlide.type === "questionList") {
+  const visibleSlides = slides.filter((slide, index) =>
+    index <= currentSlideIndex &&
+    slide.round === currentSlide.round &&
+    slide.type === "questionList"
+  );
+
+  const content = `
+    <div class="stage-question-list" style="font-size:2rem;line-height:1.15">
+      ${visibleSlides.map(slide => `
+        <div class="stage-question-item">
+          <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong>
+          ${escapeHtml(slide.question)}
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  return renderStageShell({
+    round: currentSlide.round,
+    title: currentSlide.roundTitle,
+    content
+  });
+}
   if (currentSlide.type === "title") {
     return renderStageShell({
       round: currentSlide.round,
@@ -2119,6 +2330,8 @@ function fitQuestionText() {
     app.innerHTML = renderShow();
   } else if (isControl) {
     app.innerHTML = renderControl();
+  } else if (isPrint) {
+    app.innerHTML = renderPrintPage();
   } else {
     app.innerHTML = renderDisplay();
   }
