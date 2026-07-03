@@ -1057,6 +1057,18 @@ const isControl = params.get("view") === "control";
 const isPrint = params.get("view") === "print";
 const isTvMode = params.get("tv") === "1";
    let ROUND_COUNT = 7;
+
+if (isTvMode) {
+  document.body.style.userSelect="none";
+  document.body.style.overflow="hidden";
+  let t;
+  document.addEventListener("mousemove",()=>{
+    document.body.style.cursor="default";
+    clearTimeout(t);
+    t=setTimeout(()=>document.body.style.cursor="none",1500);
+  });
+}
+
 const STORAGE_KEY = "baldGuyTriviaScoreboardData_v1";
 
 let currentSlideIndex = 0;
@@ -1067,7 +1079,8 @@ const rounds = [
     questions: [
       {
         question: "What animal was found hiding in a stuffed animal display?",
-        answer: "Opossum"
+        answer: "Opossum",
+        hostNote: "Play up that it was hiding in the toy aisle."
       },
       {
         question: "What escaped on a flight from Cancun to London?",
@@ -2121,6 +2134,22 @@ function getCurrentLabel(slide, displayMode) {
   return `${escapeHtml(slide.type.toUpperCase())} ${escapeHtml(slide.number || "")}`;
 }
 
+
+function getNextActionLabel() {
+  const next = slides[getCurrentSlideIndex()+1];
+  if (!next) return "End of Show";
+  switch(next.type){
+    case "questionHero": return `Show Question ${next.number}`;
+    case "questionList": return "Add to List";
+    case "answerQuestion": return `Show Question ${next.number}`;
+    case "answerReveal": return `Reveal Answer ${next.number}`;
+    case "title": return String(next.title||"Next Round");
+    case "imageRound": return "Show Picture Round";
+    case "imageAnswerReveal": return next.revealCount===0?"Start Picture Answers":`Reveal Picture ${next.revealCount}`;
+    default: return "Next";
+  }
+}
+
 function renderControl() {
   currentSlideIndex = getCurrentSlideIndex();
   const slide = slides[currentSlideIndex];
@@ -2131,7 +2160,7 @@ function renderControl() {
 
   return `
     <div class="control-shell">
-      <h1>Show Controller</h1>
+      <h1>BGOS Controller</h1>
 
       <div style="font-size:1.2rem;color:#f5c542;margin:20px;font-weight:800">
         Display Mode: ${escapeHtml(getDisplayModeLabel(displayMode))}
@@ -2166,9 +2195,24 @@ function renderControl() {
         </div>
       </div>
 
-      <div style="font-size:1.5rem;margin:20px">
-        Current: ${getCurrentLabel(slide, displayMode)}
+      <div style="background:#1b1b1b;border:1px solid #444;border-radius:14px;padding:18px;max-width:850px;margin:20px auto;text-align:left">
+        <div style="color:#ff4d4d;font-weight:900;letter-spacing:1px;margin-bottom:10px">🔴 LIVE</div>
+        <div style="color:#f5c542;font-size:1.15rem;font-weight:800;margin-bottom:6px">
+          ${slide?.round ? `Round ${slide.round}` : getDisplayModeLabel(displayMode)}
+        </div>
+        <div style="font-size:1.6rem;font-weight:800;margin-bottom:10px">
+          ${slide?.roundTitle || slide?.title || ""}
+        </div>
+        <div style="font-size:1.35rem;line-height:1.35">
+          ${slide?.question || getCurrentLabel(slide, displayMode)}
+        </div>
       </div>
+
+      ${slide?.hostNote ? `
+      <div style="background:#243024;border:1px solid #4c8a4c;border-radius:14px;padding:16px;max-width:850px;margin:16px auto;text-align:left">
+        <div style="color:#90ee90;font-weight:900;margin-bottom:8px">HOST NOTE</div>
+        <div style="font-size:1.15rem">${slide.hostNote}</div>
+      </div>` : ""}
 
       <div class="control-row">
         <button onclick="setDisplayMode('intro')" class="control-button-medium">🏠 Intro</button>
@@ -2181,7 +2225,10 @@ function renderControl() {
           ? `
             <div class="control-row">
               <button onclick="previousSlide()" class="control-button-large control-button-prev">◀ Previous</button>
-              <button onclick="nextSlide()" class="control-button-large control-button-next">Next ▶</button>
+              <button onclick="nextSlide()" id="nextButton" class="control-button-large control-button-next">
+<div style="font-size:2rem;font-weight:900;">NEXT ▶</div>
+<div id="nextActionLabel" style="font-size:1rem;font-weight:700;margin-top:6px;">Next</div>
+</button>
             </div>
           `
           : ""
@@ -2317,6 +2364,17 @@ function resetPodium() {
     podiumRevealCount: 0
   });
 }
+
+document.addEventListener("keydown",(e)=>{
+  if(!isControl) return;
+  const k=e.key;
+  if(["ArrowRight"," ","PageDown"].includes(k)){
+    e.preventDefault(); nextSlide();
+  }else if(["ArrowLeft","PageUp"].includes(k)){
+    e.preventDefault(); previousSlide();
+  }
+});
+
 function moveToNextScore(event) {
   if (event.key !== "Enter") return;
 
@@ -2385,6 +2443,8 @@ function fitQuestionText() {
     app.innerHTML = renderDisplay();
   }
   fitQuestionText();
+  const lbl=document.getElementById('nextActionLabel');
+  if(lbl) lbl.textContent=getNextActionLabel();
 }
     socket.on("gameState", (state) => {
       applyGameState(state);
