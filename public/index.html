@@ -1897,9 +1897,10 @@ if (currentSlide.type === "questionHero") {
     centered: true,
     content: `
       <div class="stage-kicker">Question ${escapeHtml(currentSlide.number)}</div>
-      <div class="question-container stage-question-list" style="font-size:clamp(3rem,6vw,6rem);line-height:1;">
-        ${escapeHtml(currentSlide.question)}
-      </div>
+<div class="question-container stage-question-list" style="font-size:clamp(3rem,5.4vw,5.4rem);line-height:1.05;max-width:1100px;">
+  <strong style="color:var(--accent)">${escapeHtml(currentSlide.number)}.</strong>
+  ${escapeHtml(currentSlide.question)}
+</div>
     `
   });
 }
@@ -1912,7 +1913,7 @@ if (currentSlide.type === "questionList") {
   );
 
   const content = `
-    <div class="stage-question-list" style="font-size:2rem;line-height:1.15">
+    <div class="stage-question-list" style="font-size:1.55rem;line-height:1.15">
       ${visibleSlides.map(slide => `
         <div class="stage-question-item">
           <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong>
