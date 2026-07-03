@@ -5,7 +5,6 @@
 
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -344,26 +343,6 @@
   font-size: 2rem;
   padding: 20px 40px;
   margin: 6px;
-}
-
-.control-button-prev {
-  background: #b83a3a;
-  color: #fff;
-  min-width: 220px;
-  padding: 20px 34px;
-}
-
-.control-button-next {
-  background: #28a745;
-  color: #fff;
-  min-width: 290px;
-  padding: 22px 52px;
-  font-size: 2.15rem;
-}
-
-.control-button-prev:hover,
-.control-button-next:hover {
-  filter: brightness(1.08);
 }
 
 .control-button-medium {
@@ -774,7 +753,7 @@ body.tv-mode {
 
 .stage-intro-subtitle {
   color: var(--accent);
-  font-size: clamp(2rem, 3.4vw, 3rem);
+  font-size: clamp(1.45rem, 2.6vw, 2.45rem);
   font-weight: 900;
   text-transform: uppercase;
   margin-bottom: 22px;
@@ -796,7 +775,7 @@ body.tv-mode {
   align-items: center;
   gap: 14px;
   color: #fff;
-  font-size: clamp(1.8rem, 2.9vw, 2.7rem);
+  font-size: clamp(1.25rem, 2.05vw, 1.95rem);
   line-height: 1.05;
   text-shadow: 0 2px 0 #000;
   text-align: center;
@@ -832,7 +811,7 @@ body.tv-mode {
 
 .stage-rule-line {
   color: #fff;
-  font-size: clamp(1.7rem, 2.6vw, 2.4rem);
+  font-size: clamp(1.15rem, 1.8vw, 1.7rem);
   line-height: 1.14;
   text-shadow: 0 2px 0 #000;
   text-align: center;
@@ -1057,20 +1036,7 @@ const isControl = params.get("view") === "control";
 const isPrint = params.get("view") === "print";
 const isTvMode = params.get("tv") === "1";
    let ROUND_COUNT = 7;
-
-if (isTvMode) {
-  document.body.style.userSelect="none";
-  document.body.style.overflow="hidden";
-  let t;
-  document.addEventListener("mousemove",()=>{
-    document.body.style.cursor="default";
-    clearTimeout(t);
-    t=setTimeout(()=>document.body.style.cursor="none",1500);
-  });
-}
-
 const STORAGE_KEY = "baldGuyTriviaScoreboardData_v1";
-const RECOVERY_KEY="bgosRecovery_v1";
 
 let currentSlideIndex = 0;
 const rounds = [
@@ -1080,8 +1046,7 @@ const rounds = [
     questions: [
       {
         question: "What animal was found hiding in a stuffed animal display?",
-        answer: "Opossum",
-        hostNote: "Play up that it was hiding in the toy aisle."
+        answer: "Opossum"
       },
       {
         question: "What escaped on a flight from Cancun to London?",
@@ -1137,7 +1102,7 @@ function buildSlidesFromRounds(rounds) {
       // Music rounds use the title slide only during the question phase.
       // You play the clips live, so BGOS skips the "Song 1 / Song 2..." slides.
     } else {
-      round.questions.forEach((item, index) => {
+     round.questions.forEach((item, index) => {
   const questionNumber = index + 1;
 
   generatedSlides.push({
@@ -1199,27 +1164,27 @@ function buildSlidesFromRounds(rounds) {
 
     } else {
 
-      round.questions.forEach((item, index) => {
+  round.questions.forEach((item, index) => {
+  const questionNumber = index + 1;
 
-        generatedSlides.push({
-          type: "answerQuestion",
-          round: round.round,
-          roundTitle: round.title,
-          number: index + 1,
-          question: item.question,
-          answer: item.answer
-        });
+  generatedSlides.push({
+    type: "answerQuestion",
+    round: round.round,
+    roundTitle: round.title,
+    number: questionNumber,
+    question: item.question,
+    answer: item.answer
+  });
 
-        generatedSlides.push({
-          type: "answerReveal",
-          round: round.round,
-          roundTitle: round.title,
-          number: index + 1,
-          question: item.question,
-          answer: item.answer
-        });
-
-      });
+  generatedSlides.push({
+    type: "answerReveal",
+    round: round.round,
+    roundTitle: round.title,
+    number: questionNumber,
+    question: item.question,
+    answer: item.answer
+  });
+});
 
     }
 
@@ -1227,33 +1192,7 @@ function buildSlidesFromRounds(rounds) {
 
   return generatedSlides;
 }
-function buildSlidesFromRows(rows) {
-  const groupedRounds = [];
 
-  rows.forEach(row => {
-    let round = groupedRounds.find(r => r.round === Number(row.roundOrder));
-
-    if (!round) {
-      round = {
-        round: Number(row.roundOrder),
-        title: row.round,
-        questions: []
-      };
-      groupedRounds.push(round);
-    }
-
-    round.questions.push({
-      type: row.type,
-      question: row.question,
-      answer: row.answer,
-      media: row.media
-    });
-  });
-
-  groupedRounds.sort((a, b) => a.round - b.round);
-
-  return buildSlidesFromRounds(groupedRounds);
-}
 let slides = buildSlidesFromRounds(rounds);
 
 
@@ -1354,8 +1293,7 @@ function getOrdinalSuffix(n) {
       const nextNum = draftTeams.length + 1;
       draftTeams.push(normalizeTeam({ name: `Team ${nextNum}`, rounds: blankRounds() }, nextNum));
       saveLocalCopy();
-      loadRecoveryState();
-render();
+      render();
       emitTeams();
     }
 
@@ -1415,52 +1353,8 @@ let gameState = {
   podiumRevealCount: 0
 };
 
-const BGOS = {
-  name: "Bald Guy Operating System",
-  version: "v1.2-question-flow",
-  sprint: "Question Spotlight Flow",
-  settings: {
-    spotlightFlowEnabled: true,
-    fixedQuestionListSize: true
-  },
-  get slides() {
-    return slides;
-  },
-  get teams() {
-    return teams;
-  },
-  get gameState() {
-    return gameState;
-  }
-};
-
-
 function clampSlideIndex(index) {
   return Math.min(Math.max(Number(index) || 0, 0), Math.max(slides.length - 1, 0));
-}
-
-
-function saveRecoveryState(){
- if(!isControl) return;
- const state={gameState,finalRevealCount,podiumRevealCount,savedAt:Date.now()};
- localStorage.setItem(RECOVERY_KEY,JSON.stringify(state));
-}
-function loadRecoveryState(){
- if(!isControl) return;
- try{
-  const raw=localStorage.getItem(RECOVERY_KEY);
-  if(!raw) return;
-  const rec=JSON.parse(raw);
-  if(Date.now()-rec.savedAt>12*60*60*1000) return;
-  if(confirm("Resume previous show?")){
-    applyGameState(rec.gameState||{});
-    finalRevealCount=rec.finalRevealCount||0;
-    podiumRevealCount=rec.podiumRevealCount||0;
-    socket.emit("gameState",gameState);
-  }else{
-    localStorage.removeItem(RECOVERY_KEY);
-  }
- }catch(e){}
 }
 
 function applyGameState(updatedState = {}) {
@@ -1481,7 +1375,6 @@ function applyGameState(updatedState = {}) {
 
 function emitGameState(update = {}) {
   applyGameState(update);
-  saveRecoveryState();
   socket.emit("gameState", gameState);
   render();
 }
@@ -1943,114 +1836,6 @@ function renderPrintPage() {
   `;
 }
 
-function renderTitleSlide(currentSlide) {
-  return renderStageShell({
-    round: currentSlide.round,
-    title: currentSlide.title,
-    centered: true,
-    content: `
-      <div class="stage-kicker">Round ${escapeHtml(currentSlide.round)}</div>
-      <div class="stage-title-main">${escapeHtml(currentSlide.title)}</div>
-    `
-  });
-}
-
-function renderQuestionHeroSlide(currentSlide) {
-  return renderStageShell({
-    round: currentSlide.round,
-    title: currentSlide.roundTitle,
-    centered: true,
-    content: `
-      <div class="stage-kicker">Question ${escapeHtml(currentSlide.number)}</div>
-      <div class="question-container stage-question-list" style="font-size:clamp(3rem,5.4vw,5.4rem);line-height:1.05;max-width:1100px;">
-        <strong style="color:var(--accent)">${escapeHtml(currentSlide.number)}.</strong>
-        ${escapeHtml(currentSlide.question)}
-      </div>
-    `
-  });
-}
-
-function renderQuestionListSlide(currentSlide) {
-  const visibleSlides = slides.filter((slide, index) =>
-    index <= currentSlideIndex &&
-    slide.round === currentSlide.round &&
-    slide.type === "questionList"
-  );
-
-  const content = `
-    <div class="stage-question-list" style="font-size:1.55rem;line-height:1.15">
-      ${visibleSlides.map(slide => `
-        <div class="stage-question-item">
-          <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong>
-          ${escapeHtml(slide.question)}
-        </div>
-      `).join("")}
-    </div>
-  `;
-
-  return renderStageShell({
-    round: currentSlide.round,
-    title: currentSlide.roundTitle,
-    content
-  });
-}
-
-function renderImageRoundSlide(currentSlide) {
-  return renderImageGrid(currentSlide, 0);
-}
-
-function renderImageAnswerRevealSlide(currentSlide) {
-  return renderImageGrid(
-    currentSlide,
-    currentSlide.revealCount
-  );
-}
-
-function renderAnswerSlide(currentSlide) {
-  const visibleSlides = slides.filter((slide, index) => {
-    if (index > currentSlideIndex) return false;
-    if (slide.round !== currentSlide.round) return false;
-
-    return slide.type === "answerQuestion" || slide.type === "answerReveal";
-  });
-
-  const roundTitle = currentSlide.roundTitle || currentSlide.title || "";
-  const content = `
-    <div class="question-container stage-question-list" style="font-size:3rem;line-height:.85">
-      ${visibleSlides.map(slide => {
-        const isAnswerReveal = slide.type === "answerReveal";
-        return `
-          <div class="stage-question-item">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:35px">
-              <div style="flex:1;visibility:${isAnswerReveal ? "hidden" : "visible"}">
-                <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong> ${escapeHtml(slide.question)}
-              </div>
-
-              ${isAnswerReveal ? `<div class="stage-answer-text">${escapeHtml(slide.answer)}</div>` : ""}
-            </div>
-          </div>
-        `;
-      }).join("")}
-    </div>
-  `;
-
-  return renderStageShell({
-    round: currentSlide.round,
-    title: roundTitle,
-    content
-  });
-}
-
-const slideRenderers = {
-  title: renderTitleSlide,
-  questionHero: renderQuestionHeroSlide,
-  questionList: renderQuestionListSlide,
-  imageRound: renderImageRoundSlide,
-  imageAnswerReveal: renderImageAnswerRevealSlide,
-  answerQuestion: renderAnswerSlide,
-  answerReveal: renderAnswerSlide
-};
-
 function renderShow() {
   currentSlideIndex = getCurrentSlideIndex();
   const displayMode = getDisplayMode();
@@ -2079,14 +1864,114 @@ function renderShow() {
   if (!currentSlide) {
     return `<div class="empty-state">No slide found.</div>`;
   }
+if (currentSlide.type === "questionHero") {
+  return renderStageShell({
+    round: currentSlide.round,
+    title: currentSlide.roundTitle,
+    centered: true,
+    content: `
+      <div class="stage-kicker">Question ${escapeHtml(currentSlide.number)}</div>
+      <div class="stage-title-main" style="font-size:clamp(3rem,6vw,6rem);">
+        ${escapeHtml(currentSlide.question)}
+      </div>
+    `
+  });
+}
 
-  const renderer = slideRenderers[currentSlide.type];
+if (currentSlide.type === "questionList") {
+  const visibleSlides = slides.filter((slide, index) =>
+    index <= currentSlideIndex &&
+    slide.round === currentSlide.round &&
+    slide.type === "questionList"
+  );
 
-  if (renderer) {
-    return renderer(currentSlide);
+  const content = `
+    <div class="question-container stage-question-list" style="font-size:2.5rem;line-height:1.05">
+      ${visibleSlides.map(slide => `
+        <div class="stage-question-item">
+          <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong>
+          ${escapeHtml(slide.question)}
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  return renderStageShell({
+    round: currentSlide.round,
+    title: currentSlide.roundTitle,
+    content
+  });
+}
+  if (currentSlide.type === "title") {
+    return renderStageShell({
+      round: currentSlide.round,
+      title: currentSlide.title,
+      centered: true,
+      content: `
+        <div class="stage-kicker">Round ${escapeHtml(currentSlide.round)}</div>
+        <div class="stage-title-main">${escapeHtml(currentSlide.title)}</div>
+      `
+    });
   }
 
-  return `<div class="empty-state">No renderer found for slide type: ${escapeHtml(currentSlide.type)}</div>`;
+  if (currentSlide.type === "imageRound") {
+  return renderImageGrid(currentSlide, 0);
+}
+
+if (currentSlide.type === "imageAnswerReveal") {
+  return renderImageGrid(
+    currentSlide,
+    currentSlide.revealCount
+  );
+}
+
+  const isAnswerMode =
+    currentSlide.type === "answerQuestion" ||
+    currentSlide.type === "answerReveal";
+
+  const visibleSlides = slides.filter((slide, index) => {
+    if (index > currentSlideIndex) return false;
+    if (slide.round !== currentSlide.round) return false;
+
+    if (!isAnswerMode) {
+      return slide.type === "question";
+    }
+
+    return slide.type === "answerQuestion" || slide.type === "answerReveal";
+  });
+const visibleCount = visibleSlides.length;
+
+let showFontSize = "2.4rem";
+
+if (visibleCount >= 10) showFontSize = "1.8rem";
+else if (visibleCount >= 8) showFontSize = "1.65rem";
+else if (visibleCount >= 6) showFontSize = "1.85rem";
+else if (visibleCount >= 4) showFontSize = "2.1rem";
+  const roundTitle = currentSlide.roundTitle || currentSlide.title || "";
+  const content = `
+    <div class="question-container stage-question-list" style="font-size:3rem;line-height:.85">
+      ${visibleSlides.map(slide => {
+        const isAnswerReveal = slide.type === "answerReveal";
+        return `
+          <div class="stage-question-item">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:35px">
+              <div style="flex:1;visibility:${isAnswerReveal ? "hidden" : "visible"}">
+                <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong> ${escapeHtml(slide.question)}
+              </div>
+
+              ${isAnswerReveal ? `<div class="stage-answer-text">${escapeHtml(slide.answer)}</div>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  return renderStageShell({
+    round: currentSlide.round,
+    title: roundTitle,
+    content
+  });
 }
 
 function getQuestionTitleSlides() {
@@ -2161,22 +2046,6 @@ function getCurrentLabel(slide, displayMode) {
   return `${escapeHtml(slide.type.toUpperCase())} ${escapeHtml(slide.number || "")}`;
 }
 
-
-function getNextActionLabel() {
-  const next = slides[getCurrentSlideIndex()+1];
-  if (!next) return "End of Show";
-  switch(next.type){
-    case "questionHero": return `Show Question ${next.number}`;
-    case "questionList": return "Add to List";
-    case "answerQuestion": return `Show Question ${next.number}`;
-    case "answerReveal": return `Reveal Answer ${next.number}`;
-    case "title": return String(next.title||"Next Round");
-    case "imageRound": return "Show Picture Round";
-    case "imageAnswerReveal": return next.revealCount===0?"Start Picture Answers":`Reveal Picture ${next.revealCount}`;
-    default: return "Next";
-  }
-}
-
 function renderControl() {
   currentSlideIndex = getCurrentSlideIndex();
   const slide = slides[currentSlideIndex];
@@ -2187,7 +2056,7 @@ function renderControl() {
 
   return `
     <div class="control-shell">
-      <h1>BGOS Controller</h1>
+      <h1>Show Controller</h1>
 
       <div style="font-size:1.2rem;color:#f5c542;margin:20px;font-weight:800">
         Display Mode: ${escapeHtml(getDisplayModeLabel(displayMode))}
@@ -2222,24 +2091,9 @@ function renderControl() {
         </div>
       </div>
 
-      <div style="background:#1b1b1b;border:1px solid #444;border-radius:14px;padding:18px;max-width:850px;margin:20px auto;text-align:left">
-        <div style="color:#ff4d4d;font-weight:900;letter-spacing:1px;margin-bottom:10px">🔴 LIVE</div>
-        <div style="color:#f5c542;font-size:1.15rem;font-weight:800;margin-bottom:6px">
-          ${slide?.round ? `Round ${slide.round}` : getDisplayModeLabel(displayMode)}
-        </div>
-        <div style="font-size:1.6rem;font-weight:800;margin-bottom:10px">
-          ${slide?.roundTitle || slide?.title || ""}
-        </div>
-        <div style="font-size:1.35rem;line-height:1.35">
-          ${slide?.question || getCurrentLabel(slide, displayMode)}
-        </div>
+      <div style="font-size:1.5rem;margin:20px">
+        Current: ${getCurrentLabel(slide, displayMode)}
       </div>
-
-      ${slide?.hostNote ? `
-      <div style="background:#243024;border:1px solid #4c8a4c;border-radius:14px;padding:16px;max-width:850px;margin:16px auto;text-align:left">
-        <div style="color:#90ee90;font-weight:900;margin-bottom:8px">HOST NOTE</div>
-        <div style="font-size:1.15rem">${slide.hostNote}</div>
-      </div>` : ""}
 
       <div class="control-row">
         <button onclick="setDisplayMode('intro')" class="control-button-medium">🏠 Intro</button>
@@ -2251,11 +2105,8 @@ function renderControl() {
         !isFinalMode && !isPodiumMode
           ? `
             <div class="control-row">
-              <button onclick="previousSlide()" class="control-button-large control-button-prev">◀ Previous</button>
-              <button onclick="nextSlide()" id="nextButton" class="control-button-large control-button-next">
-<div style="font-size:2rem;font-weight:900;">NEXT ▶</div>
-<div id="nextActionLabel" style="font-size:1rem;font-weight:700;margin-top:6px;">Next</div>
-</button>
+              <button onclick="previousSlide()" class="control-button-large">◀ Previous</button>
+              <button onclick="nextSlide()" class="control-button-large">Next ▶</button>
             </div>
           `
           : ""
@@ -2264,7 +2115,6 @@ function renderControl() {
       <div class="control-row">
         <button onclick="openPresentationMode()" class="control-button-medium">📺 Open TV Display</button>
         <button onclick="toggleFullscreen()" class="control-button-medium">⛶ Full Screen</button>
-<button onclick="validateGame()" class="control-button-medium">🔍 Validate Game</button>
       </div>
 
       <div class="control-row">
@@ -2392,17 +2242,6 @@ function resetPodium() {
     podiumRevealCount: 0
   });
 }
-
-document.addEventListener("keydown",(e)=>{
-  if(!isControl) return;
-  const k=e.key;
-  if(["ArrowRight"," ","PageDown"].includes(k)){
-    e.preventDefault(); nextSlide();
-  }else if(["ArrowLeft","PageUp"].includes(k)){
-    e.preventDefault(); previousSlide();
-  }
-});
-
 function moveToNextScore(event) {
   if (event.key !== "Enter") return;
 
@@ -2454,50 +2293,7 @@ function fitQuestionText() {
   container.style.fontSize = `${Math.max(0.9, best - 0.05)}rem`;
 }
 
-  
-function validateGame(){
-  const issues=[];
-  const warnings=[];
-  rounds.forEach((round,rIdx)=>{
-    if(!round.title || !String(round.title).trim()){
-      issues.push(`Round ${rIdx+1}: Missing title`);
-    }
-    round.questions.forEach((q,qIdx)=>{
-      if(!q.question || !String(q.question).trim()){
-        issues.push(`R${rIdx+1} Q${qIdx+1}: Missing question`);
-      }
-      if(q.answer===undefined || String(q.answer).trim()===""){
-        issues.push(`R${rIdx+1} Q${qIdx+1}: Missing answer`);
-      }
-      if(q.type==="imageRound" && (!q.media || !String(q.media).trim())){
-        issues.push(`R${rIdx+1} Picture ${qIdx+1}: Missing image filename`);
-      }
-      if(q.hostNote!==undefined && String(q.hostNote).trim()===""){
-        warnings.push(`R${rIdx+1} Q${qIdx+1}: Blank host note`);
-      }
-    });
-  });
-
-  let msg=`BGOS Validation\n\n`;
-  if(issues.length===0){
-    msg+="✅ READY TO HOST\n\n";
-  }else{
-    msg+="❌ NOT READY\n\n";
-  }
-  if(issues.length){
-    msg+="Errors:\n"+issues.map(i=>"• "+i).join("\n")+"\n\n";
-  }
-  if(warnings.length){
-    msg+="Warnings:\n"+warnings.map(w=>"• "+w).join("\n");
-  }
-  if(!issues.length && !warnings.length){
-    msg+="No issues found.";
-  }
-  alert(msg);
-}
-
-
-function render() {
+  function render() {
   const app = document.getElementById("app");
 
   if (isHost) {
@@ -2514,8 +2310,6 @@ function render() {
     app.innerHTML = renderDisplay();
   }
   fitQuestionText();
-  const lbl=document.getElementById('nextActionLabel');
-  if(lbl) lbl.textContent=getNextActionLabel();
 }
     socket.on("gameState", (state) => {
       applyGameState(state);
@@ -2696,3 +2490,4 @@ document.addEventListener("touchend", (e) => {
   </script>
 </body>
 </html>
+
