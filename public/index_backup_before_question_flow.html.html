@@ -976,7 +976,13 @@ body.tv-mode {
 .print-empty-card {
   border: 1px dashed #777;
 }
-
+.print-team-name {
+  color: #000;
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 auto 8px;
+  width: 13.4in;
+}
 .print-toolbar {
   display: flex;
   justify-content: center;
@@ -1810,13 +1816,18 @@ function renderPrintPage() {
         <button onclick="window.print()">Print Picture Round</button>
         <button class="secondary" onclick="history.back()">Back</button>
       </div>
-
+<div class="print-team-name">
+  <strong>Team Name:</strong> ________________________________________________
+</div>
       ${pages.map(pageImages => {
         const filled = [...pageImages];
         while (filled.length < 10) filled.push(null);
 
         return `
           <div class="print-sheet">
+             <div class="print-team-name">
+      <strong>Team Name:</strong> ________________________________________________
+    </div>
             ${filled.map((img, index) => {
               if (!img) return `<div class="print-picture-card print-empty-card"></div>`;
 
