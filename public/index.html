@@ -1804,7 +1804,7 @@ function renderPodiumPage() {
             <div class="podium-row">
               <div class="podium-medal">${item.medal}</div>
               <div class="podium-team ${visible ? "" : "podium-placeholder"}">
-                ${visible ? `${item.label} — ${escapeHtml(name)}` : `${item.label} — ———`}
+                ${visible ? `${item.label} — ${escapeHtml(name)} — ${item.team?.total ?? ""}` : `${item.label} — ———`}
               </div>
             </div>
           `;
