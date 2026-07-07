@@ -268,7 +268,7 @@
 
 .final-reveal-row {
   display: grid;
-  grid-template-columns: 140px 1fr 160px;
+ grid-template-columns: 120px 1fr repeat(7, 70px) 120px;
   align-items: center;
   gap: 20px;
   background: linear-gradient(180deg, #181818, #0d0d0d);
@@ -1522,10 +1522,11 @@ function renderFinalReveal() {
 
         return `
           <div class="final-reveal-row">
-            <div class="final-reveal-place">${place}${getOrdinalSuffix(place)}</div>
-            <div class="final-reveal-team">${escapeHtml(team.name)}</div>
-            <div class="final-reveal-total">${team.total}</div>
-          </div>
+  <div class="final-reveal-place">${place}${getOrdinalSuffix(place)}</div>
+  <div class="final-reveal-team">${escapeHtml(team.name)}</div>
+  ${team.rounds.map(score => `<div>${score}</div>`).join("")}
+  <div class="final-reveal-total">${team.total}</div>
+</div>
         `;
       }).join("")
     : `<div class="empty-state">Ready for final reveal…</div>`;
