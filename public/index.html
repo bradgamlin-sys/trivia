@@ -857,6 +857,12 @@ body.tv-mode {
 .stage-question-list {
   color: #fff;
   text-shadow: 0 2px 0 #000;
+  font-size: 2.15rem;
+  line-height: 1.15;
+}
+
+.stage-question-item {
+  margin-bottom: 8px;
 }
 
 .stage-question-item {
@@ -1226,6 +1232,22 @@ function buildSlidesFromRounds(rounds) {
   });
 
   return generatedSlides;
+}
+function fitQuestionList() {
+  const board = document.querySelector(".stage-board");
+ const list = document.querySelector(".stage-running-question-list");
+
+  if (!board || !list) return;
+
+  let fontSize = 2.15;
+  const minFontSize = 1.2;
+
+  list.style.fontSize = `${fontSize}rem`;
+
+  while (list.scrollHeight > board.clientHeight && fontSize > minFontSize) {
+    fontSize -= 0.05;
+    list.style.fontSize = `${fontSize}rem`;
+  }
 }
 function buildSlidesFromRows(rows) {
   const groupedRounds = [];
@@ -1978,7 +2000,8 @@ function renderQuestionListSlide(currentSlide) {
   );
 
   const content = `
-    <div class="stage-question-list" style="font-size:1.55rem;line-height:1.15">
+  
+   <div class="stage-question-list stage-running-question-list">
       ${visibleSlides.map(slide => `
         <div class="stage-question-item">
           <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong>
@@ -2514,6 +2537,7 @@ function render() {
     app.innerHTML = renderDisplay();
   }
   fitQuestionText();
+  fitQuestionList();
   const lbl=document.getElementById('nextActionLabel');
   if(lbl) lbl.textContent=getNextActionLabel();
 }
