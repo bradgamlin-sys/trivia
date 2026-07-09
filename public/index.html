@@ -75,9 +75,9 @@
     .board-row {
       display: grid;
       grid-template-columns: 90px 1.8fr repeat(7, 1fr) 1fr;
-      gap: 8px;
+      gap: var(--board-gap, 8px);
       align-items: center;
-      padding: 14px 16px;
+      padding: var(--board-row-padding, 14px 16px);
     }
 
     .board-header {
@@ -85,13 +85,13 @@
       font-weight: 700;
       color: var(--accent);
       border-bottom: 1px solid var(--line);
-      font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+      font-size: var(--board-header-font, clamp(0.9rem, 1.5vw, 1.2rem));
     }
 
     .board-row {
       border-bottom: 1px solid rgba(255,255,255,0.05);
-      font-size: clamp(1.1rem, 2vw, 1.7rem);
-      min-height: 70px;
+      font-size: var(--board-row-font, clamp(1.1rem, 2vw, 1.7rem));
+      min-height: var(--board-row-min-height, 70px);
     }
 
     .board-row:nth-child(even) {
@@ -100,19 +100,19 @@
 
     .rank {
       font-weight: 800;
-      font-size: clamp(1.2rem, 2.3vw, 1.9rem);
+      font-size: var(--board-rank-font, clamp(1.2rem, 2.3vw, 1.9rem));
     }
 
     .team-name {
       font-weight: 700;
       word-break: break-word;
-      font-size: clamp(1.15rem, 2.1vw, 1.8rem);
+      font-size: var(--board-team-font, clamp(1.15rem, 2.1vw, 1.8rem));
     }
 
     .total-cell {
       font-weight: 800;
       color: var(--accent);
-      font-size: clamp(1.2rem, 2.2vw, 1.9rem);
+      font-size: var(--board-total-font, clamp(1.2rem, 2.2vw, 1.9rem));
     }
 
     .empty-state {
@@ -870,11 +870,48 @@ body.tv-mode {
 }
 
 .stage-answer-text {
-  color: var(--accent);
-  font-weight: 1000;
+  color: #7CFF6B;
+  font-family: "Rye", serif;
+  font-size: 1.4em;
+  font-weight: normal;
   text-align: right;
   white-space: nowrap;
-  text-shadow: 0 2px 0 #000;
+  text-transform: uppercase;
+  text-shadow:
+    0 2px 0 #000,
+    0 0 12px rgba(124,255,107,.6);
+}
+
+.stage-answer-hero-answer,
+.stage-answer-list-answer {
+  color: #7CFF6B;
+  font-family: "Rye", serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  text-shadow:
+    0 2px 0 #000,
+    0 0 12px rgba(124,255,107,.6);
+}
+
+.stage-answer-hero-answer {
+  margin-top: 26px;
+  font-size: 1.12em;
+  line-height: 1.12;
+  color: #7CFF6B;
+}
+
+.stage-answer-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: baseline;
+}
+
+.stage-answer-list-answer {
+  font-size: 1.05em;
+  color: #7CFF6B;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .stage-image-grid {
@@ -1225,6 +1262,15 @@ function buildSlidesFromRounds(rounds) {
           answer: item.answer
         });
 
+        generatedSlides.push({
+          type: "answerList",
+          round: round.round,
+          roundTitle: round.title,
+          number: index + 1,
+          question: item.question,
+          answer: item.answer
+        });
+
       });
 
     }
@@ -1235,18 +1281,56 @@ function buildSlidesFromRounds(rounds) {
 }
 function fitQuestionList() {
   const board = document.querySelector(".stage-board");
- const list = document.querySelector(".stage-running-question-list");
+  const list = document.querySelector(".stage-running-question-list, .stage-running-answer-list");
 
   if (!board || !list) return;
 
   let fontSize = 2.15;
-  const minFontSize = 1.2;
+  const minFontSize = 1.15;
 
   list.style.fontSize = `${fontSize}rem`;
 
   while (list.scrollHeight > board.clientHeight && fontSize > minFontSize) {
     fontSize -= 0.05;
     list.style.fontSize = `${fontSize}rem`;
+  }
+}
+
+function fitScoreboard() {
+  const board = document.querySelector(".scoreboard-board");
+  if (!board) return;
+
+  let font = 1.7;
+  let headerFont = 1.2;
+  let rowHeight = 70;
+  let padY = 14;
+  let padX = 16;
+  let gap = 8;
+
+  const minFont = 0.72;
+  const availableHeight = window.innerHeight - board.getBoundingClientRect().top - 10;
+
+  const apply = () => {
+    board.style.setProperty("--board-row-font", `${font}rem`);
+    board.style.setProperty("--board-rank-font", `${font * 1.08}rem`);
+    board.style.setProperty("--board-team-font", `${font * 1.03}rem`);
+    board.style.setProperty("--board-total-font", `${font * 1.08}rem`);
+    board.style.setProperty("--board-header-font", `${headerFont}rem`);
+    board.style.setProperty("--board-row-min-height", `${rowHeight}px`);
+    board.style.setProperty("--board-row-padding", `${padY}px ${padX}px`);
+    board.style.setProperty("--board-gap", `${gap}px`);
+  };
+
+  apply();
+
+  while (board.scrollHeight > availableHeight && font > minFont) {
+    font -= 0.05;
+    headerFont = Math.max(0.62, headerFont - 0.035);
+    rowHeight = Math.max(30, rowHeight - 3);
+    padY = Math.max(3, padY - 1);
+    padX = Math.max(6, padX - 1);
+    gap = Math.max(3, gap - 0.5);
+    apply();
   }
 }
 function buildSlidesFromRows(rows) {
@@ -1575,7 +1659,7 @@ function renderFinalReveal() {
   <img src="bg.png" alt="Logo" class="logo-side">
 </div>
           <div class="subtitle">Live Leaderboard</div>
-          <div class="board">
+          <div class="board scoreboard-board">
             <div class="board-header">
               <div>Rank</div>
               <div>Team</div>
@@ -2030,37 +2114,62 @@ function renderImageAnswerRevealSlide(currentSlide) {
   );
 }
 
-function renderAnswerSlide(currentSlide) {
-  const visibleSlides = slides.filter((slide, index) => {
-    if (index > currentSlideIndex) return false;
-    if (slide.round !== currentSlide.round) return false;
-
-    return slide.type === "answerQuestion" || slide.type === "answerReveal";
+function renderAnswerQuestionSlide(currentSlide) {
+  return renderStageShell({
+    round: currentSlide.round,
+    title: currentSlide.roundTitle,
+    centered: true,
+    content: `
+      <div class="stage-kicker">Answer ${escapeHtml(currentSlide.number)}</div>
+      <div class="question-container stage-question-list" style="font-size:clamp(3rem,5.4vw,5.4rem);line-height:1.05;max-width:1100px;">
+        <strong style="color:var(--accent)">${escapeHtml(currentSlide.number)}.</strong>
+        ${escapeHtml(currentSlide.question)}
+      </div>
+    `
   });
+}
 
-  const roundTitle = currentSlide.roundTitle || currentSlide.title || "";
+function renderAnswerRevealSlide(currentSlide) {
+  return renderStageShell({
+    round: currentSlide.round,
+    title: currentSlide.roundTitle,
+    centered: true,
+    content: `
+      <div class="question-container stage-question-list" style="font-size:clamp(2.1rem,4vw,4rem);line-height:1.22;padding:20px 0;margin:0 auto;max-width:1150px;">
+        <div>
+          <strong style="color:var(--accent)">${escapeHtml(currentSlide.number)}.</strong>
+          ${escapeHtml(currentSlide.question)}
+        </div>
+        <div class="stage-answer-hero-answer">${escapeHtml(currentSlide.answer)}</div>
+      </div>
+    `
+  });
+}
+
+function renderAnswerListSlide(currentSlide) {
+  const visibleSlides = slides.filter((slide, index) =>
+    index <= currentSlideIndex &&
+    slide.round === currentSlide.round &&
+    slide.type === "answerList"
+  );
+
   const content = `
-    <div class="question-container stage-question-list" style="font-size:3rem;line-height:.85">
-      ${visibleSlides.map(slide => {
-        const isAnswerReveal = slide.type === "answerReveal";
-        return `
-          <div class="stage-question-item">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:35px">
-              <div style="flex:1;visibility:${isAnswerReveal ? "hidden" : "visible"}">
-                <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong> ${escapeHtml(slide.question)}
-              </div>
-
-              ${isAnswerReveal ? `<div class="stage-answer-text">${escapeHtml(slide.answer)}</div>` : ""}
-            </div>
+    <div class="stage-question-list stage-running-answer-list">
+      ${visibleSlides.map(slide => `
+        <div class="stage-question-item stage-answer-list-row">
+          <div>
+            <strong style="color:var(--accent)">${escapeHtml(slide.number)}.</strong>
+            ${escapeHtml(slide.question)}
           </div>
-        `;
-      }).join("")}
+          <div class="stage-answer-list-answer">${escapeHtml(slide.answer)}</div>
+        </div>
+      `).join("")}
     </div>
   `;
 
   return renderStageShell({
     round: currentSlide.round,
-    title: roundTitle,
+    title: currentSlide.roundTitle,
     content
   });
 }
@@ -2071,8 +2180,9 @@ const slideRenderers = {
   questionList: renderQuestionListSlide,
   imageRound: renderImageRoundSlide,
   imageAnswerReveal: renderImageAnswerRevealSlide,
-  answerQuestion: renderAnswerSlide,
-  answerReveal: renderAnswerSlide
+  answerQuestion: renderAnswerQuestionSlide,
+  answerReveal: renderAnswerRevealSlide,
+  answerList: renderAnswerListSlide
 };
 
 function renderShow() {
@@ -2192,8 +2302,9 @@ function getNextActionLabel() {
   switch(next.type){
     case "questionHero": return `Show Question ${next.number}`;
     case "questionList": return "Add to List";
-    case "answerQuestion": return `Show Question ${next.number}`;
+    case "answerQuestion": return `Show Answer Question ${next.number}`;
     case "answerReveal": return `Reveal Answer ${next.number}`;
+    case "answerList": return "Add Answer to List";
     case "title": return String(next.title||"Next Round");
     case "imageRound": return "Show Picture Round";
     case "imageAnswerReveal": return next.revealCount===0?"Start Picture Answers":`Reveal Picture ${next.revealCount}`;
@@ -2539,6 +2650,7 @@ function render() {
   }
   fitQuestionText();
   fitQuestionList();
+  fitScoreboard();
   const lbl=document.getElementById('nextActionLabel');
   if(lbl) lbl.textContent=getNextActionLabel();
 }
