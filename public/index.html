@@ -1144,28 +1144,53 @@ const rounds = [
   }
 ];
 function buildSlidesFromRounds(rounds) {
-  let generatedSlides = [];
+  const generatedSlides = [];
+  const roundMap = new Map(
+    rounds.map(round => [Number(round.round), round])
+  );
 
-  // ===========================
-  // QUESTION PHASE
-  // ===========================
+  function getRound(roundNumber) {
+    return roundMap.get(Number(roundNumber));
+  }
 
-  rounds.forEach(round => {
+  function isImageRound(round) {
+    return Boolean(
+      round &&
+      round.questions.length &&
+      round.questions.every(q => q.type === "imageRound")
+    );
+  }
+
+  function isMusicRound(round) {
+    return Boolean(
+      round &&
+      round.questions.length &&
+      round.questions.every(
+        q => String(q.type || "").toLowerCase() === "music"
+      )
+    );
+  }
+
+  function addRoundTitle(roundNumber, titleOverride = "") {
+    const round = getRound(roundNumber);
+    if (!round) return;
+
     generatedSlides.push({
       type: "title",
       round: round.round,
-      title: round.title
+      title: titleOverride || round.title
     });
+  }
 
-    const isImageRound =
-      round.questions.length &&
-      round.questions.every(q => q.type === "imageRound");
+  function addQuestionSection(roundNumber, options = {}) {
+    const round = getRound(roundNumber);
+    if (!round) return;
 
-    const isMusicRound =
-      round.questions.length &&
-      round.questions.every(q => String(q.type || "").toLowerCase() === "music");
+    addRoundTitle(roundNumber, options.titleOverride || "");
 
-    if (isImageRound) {
+    if (options.titleOnly) return;
+
+    if (isImageRound(round)) {
       generatedSlides.push({
         type: "imageRound",
         round: round.round,
@@ -1176,39 +1201,40 @@ function buildSlidesFromRounds(rounds) {
           answer: item.answer
         }))
       });
-    } else if (isMusicRound) {
-      // Music rounds use the title slide only during the question phase.
-      // You play the clips live, so BGOS skips the "Song 1 / Song 2..." slides.
-    } else {
-      round.questions.forEach((item, index) => {
-  const questionNumber = index + 1;
-
-  generatedSlides.push({
-    type: "questionHero",
-    round: round.round,
-    roundTitle: round.title,
-    number: questionNumber,
-    question: item.question,
-    answer: item.answer
-  });
-
-  generatedSlides.push({
-    type: "questionList",
-    round: round.round,
-    roundTitle: round.title,
-    number: questionNumber,
-    question: item.question,
-    answer: item.answer
-  });
-});
+      return;
     }
-  });
 
-  // ===========================
-  // ANSWER PHASE
-  // ===========================
+    if (isMusicRound(round)) {
+      // Music question rounds are run live from the title screen.
+      return;
+    }
 
-  rounds.forEach(round => {
+    round.questions.forEach((item, index) => {
+      const questionNumber = index + 1;
+
+      generatedSlides.push({
+        type: "questionHero",
+        round: round.round,
+        roundTitle: round.title,
+        number: questionNumber,
+        question: item.question,
+        answer: item.answer
+      });
+
+      generatedSlides.push({
+        type: "questionList",
+        round: round.round,
+        roundTitle: round.title,
+        number: questionNumber,
+        question: item.question,
+        answer: item.answer
+      });
+    });
+  }
+
+  function addAnswerSection(roundNumber) {
+    const round = getRound(roundNumber);
+    if (!round) return;
 
     generatedSlides.push({
       type: "title",
@@ -1216,12 +1242,7 @@ function buildSlidesFromRounds(rounds) {
       title: `${round.title} Answers`
     });
 
-    const isImageRound =
-      round.questions.length &&
-      round.questions.every(q => q.type === "imageRound");
-
-    if (isImageRound) {
-
+    if (isImageRound(round)) {
       const images = round.questions.map((item, index) => ({
         number: index + 1,
         media: item.media,
@@ -1229,7 +1250,6 @@ function buildSlidesFromRounds(rounds) {
       }));
 
       for (let revealCount = 0; revealCount <= images.length; revealCount++) {
-
         generatedSlides.push({
           type: "imageAnswerReveal",
           round: round.round,
@@ -1237,37 +1257,95 @@ function buildSlidesFromRounds(rounds) {
           revealCount,
           images
         });
-
       }
 
-    } else {
-
-      round.questions.forEach((item, index) => {
-
-        generatedSlides.push({
-          type: "answerQuestion",
-          round: round.round,
-          roundTitle: round.title,
-          number: index + 1,
-          question: item.question,
-          answer: item.answer
-        });
-
-        generatedSlides.push({
-          type: "answerReveal",
-          round: round.round,
-          roundTitle: round.title,
-          number: index + 1,
-          question: item.question,
-          answer: item.answer
-        });
-
-     
-
-      });
-
+      return;
     }
 
+    round.questions.forEach((item, index) => {
+      generatedSlides.push({
+        type: "answerQuestion",
+        round: round.round,
+        roundTitle: round.title,
+        number: index + 1,
+        question: item.question,
+        answer: item.answer
+      });
+
+      generatedSlides.push({
+        type: "answerReveal",
+        round: round.round,
+        roundTitle: round.title,
+        number: index + 1,
+        question: item.question,
+        answer: item.answer
+      });
+    });
+  }
+
+  function addScoreboard(label) {
+    generatedSlides.push({
+      type: "scoreboard",
+      label
+    });
+  }
+
+  /*
+   * BGOS default live hosting flow:
+   *
+   * R1 questions
+   * R2 questions
+   * R3 title only (handout / grading)
+   * R1 answers
+   * R2 answers
+   * Scores
+   * R4 title only (music)
+   * R3 answers
+   * R4 title again (continue music)
+   * R5 questions
+   * R4 answers
+   * R6 questions
+   * R5 answers
+   * R6 answers
+   * Scores
+   * R7 questions
+   * R7 answers
+   * End
+   */
+
+  addQuestionSection(1);
+  addQuestionSection(2);
+
+  addQuestionSection(3, { titleOnly: true });
+
+  addAnswerSection(1);
+  addAnswerSection(2);
+
+  addScoreboard("Scores after Round 2");
+
+  addQuestionSection(4, { titleOnly: true });
+
+  addAnswerSection(3);
+
+  addQuestionSection(4, { titleOnly: true });
+
+  addQuestionSection(5);
+
+  addAnswerSection(4);
+
+  addQuestionSection(6);
+
+  addAnswerSection(5);
+  addAnswerSection(6);
+
+  addScoreboard("Scores after Round 6");
+
+  addQuestionSection(7);
+  addAnswerSection(7);
+
+  generatedSlides.push({
+    type: "showEnd",
+    title: "End of Show"
   });
 
   return generatedSlides;
@@ -2167,6 +2245,19 @@ function renderAnswerListSlide(currentSlide) {
   });
 }
 
+
+function renderScoreboardSlide() {
+  return renderDisplay();
+}
+
+function renderShowEndSlide() {
+  return renderSpecialPage({
+    kicker: "That's the game",
+    title: "Thanks for Playing!",
+    subtitle: "Final scores and podium are available from the controller."
+  });
+}
+
 const slideRenderers = {
   title: renderTitleSlide,
   questionHero: renderQuestionHeroSlide,
@@ -2175,7 +2266,9 @@ const slideRenderers = {
   imageAnswerReveal: renderImageAnswerRevealSlide,
   answerQuestion: renderAnswerQuestionSlide,
   answerReveal: renderAnswerRevealSlide,
-  answerList: renderAnswerListSlide
+  answerList: renderAnswerListSlide,
+  scoreboard: renderScoreboardSlide,
+  showEnd: renderShowEndSlide
 };
 
 function renderShow() {
@@ -2301,6 +2394,8 @@ function getNextActionLabel() {
     case "title": return String(next.title||"Next Round");
     case "imageRound": return "Show Picture Round";
     case "imageAnswerReveal": return next.revealCount===0?"Start Picture Answers":`Reveal Picture ${next.revealCount}`;
+    case "scoreboard": return next.label || "Show Scores";
+    case "showEnd": return "End of Show";
     default: return "Next";
   }
 }
