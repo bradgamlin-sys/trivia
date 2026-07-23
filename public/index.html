@@ -1923,10 +1923,21 @@ function setDisplayMode(mode) {
   emitGameState({ displayMode: mode });
 }
 function getRoundCategories() {
-  return getQuestionTitleSlides().map(slide => ({
-    round: slide.round,
-    title: String(slide.title || "")
-  }));
+  const seenRounds = new Set();
+
+  return getQuestionTitleSlides()
+    .filter(slide => {
+      const roundNumber = Number(slide.round);
+
+      if (seenRounds.has(roundNumber)) return false;
+
+      seenRounds.add(roundNumber);
+      return true;
+    })
+    .map(slide => ({
+      round: slide.round,
+      title: String(slide.title || "")
+    }));
 }
 
 function renderIntroPage() {
