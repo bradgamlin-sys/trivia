@@ -1267,7 +1267,11 @@ body.tv-mode {
     const isFinal = params.get("view") === "final";
     const isShow = params.get("view") === "show";
 const isControl = params.get("view") === "control";
-const isPrint = params.get("view") === "print";
+const printView = params.get("view");
+const isPrintPicture = printView === "print-picture";
+const isPrintMatching = printView === "print-matching";
+const isPrintAll = printView === "print-all" || printView === "print";
+const isPrint = isPrintPicture || isPrintMatching || isPrintAll;
 const isTvMode = params.get("tv") === "1";
    let ROUND_COUNT = 7;
 
@@ -2317,9 +2321,11 @@ function getPrintableMatchingRounds() {
   });
 }
 
-function renderPrintPage() {
-  const images = getPrintableImages();
-  const matchingRounds = getPrintableMatchingRounds();
+function renderPrintPage(mode = "all") {
+  const includePictures = mode === "all" || mode === "picture";
+  const includeMatching = mode === "all" || mode === "matching";
+  const images = includePictures ? getPrintableImages() : [];
+  const matchingRounds = includeMatching ? getPrintableMatchingRounds() : [];
   const picturePages = chunkArray(images, 10);
   const optionLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -2414,7 +2420,13 @@ function renderPrintPage() {
   return `
     <div class="print-page">
       <div class="print-toolbar">
-        <button onclick="window.print()">Print Handouts</button>
+        <button onclick="window.print()">${
+          mode === "picture"
+            ? "Print Picture Round"
+            : mode === "matching"
+              ? "Print Matching Round"
+              : "Print All Handouts"
+        }</button>
         <button class="secondary" onclick="history.back()">Back</button>
       </div>
 
@@ -2834,6 +2846,15 @@ function renderControl() {
 <button onclick="validateGame()" class="control-button-medium">🔍 Validate Game</button>
       </div>
 
+      <div style="max-width:850px;margin:24px auto 8px;text-align:left;color:#f5c542;font-weight:900;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;">
+        🖨 Handouts
+      </div>
+      <div class="control-row">
+        <button onclick="openHandout('picture')" class="control-button-medium">🖼 Picture Round</button>
+        <button onclick="openHandout('matching')" class="control-button-medium">🔗 Matching Round</button>
+        <button onclick="openHandout('all')" class="control-button-medium">📄 All Handouts</button>
+      </div>
+
       <div class="control-row">
         <button onclick="setDisplayMode('presentation')" class="control-button-medium">🎮 Game</button>
         <button onclick="setDisplayMode('scores')" class="control-button-medium">📊 Scores</button>
@@ -2874,6 +2895,13 @@ function renderControl() {
 function openPresentationMode() {
   const url = `${window.location.origin}${window.location.pathname}?view=show&tv=1`;
   window.open(url, "bgosPresentation", "popup=yes,width=1600,height=900");
+}
+
+function openHandout(kind) {
+  const allowed = new Set(["picture", "matching", "all"]);
+  const safeKind = allowed.has(kind) ? kind : "all";
+  const url = `${window.location.origin}${window.location.pathname}?view=print-${safeKind}`;
+  window.open(url, `bgosPrint${safeKind}`, "popup=yes,width=1400,height=900");
 }
 
 function toggleFullscreen() {
@@ -3099,8 +3127,12 @@ function render() {
     app.innerHTML = renderShow();
   } else if (isControl) {
     app.innerHTML = renderControl();
-  } else if (isPrint) {
-    app.innerHTML = renderPrintPage();
+  } else if (isPrintPicture) {
+    app.innerHTML = renderPrintPage("picture");
+  } else if (isPrintMatching) {
+    app.innerHTML = renderPrintPage("matching");
+  } else if (isPrintAll) {
+    app.innerHTML = renderPrintPage("all");
   } else {
     app.innerHTML = renderDisplay();
   }
