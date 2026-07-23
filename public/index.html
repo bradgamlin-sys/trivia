@@ -1394,16 +1394,23 @@ function fitQuestionList() {
     const board = list.closest(".stage-board");
     if (!board) return;
 
-    let size = 2.15;
+    const boardStyle = getComputedStyle(board);
+    const bottomPadding = parseFloat(boardStyle.paddingBottom) || 0;
+    const listTop = list.getBoundingClientRect().top;
+    const boardBottom = board.getBoundingClientRect().bottom;
+    const availableHeight = Math.max(
+      0,
+      boardBottom - bottomPadding - listTop - 6
+    );
+
+    let size = 2.45;
+    const minimumSize = 1.9;
+
     list.style.fontSize = `${size}rem`;
-    list.style.lineHeight = "1.08";
+    list.style.lineHeight = "1.1";
 
-    // Only shrink when the content truly overflows.
-    // Keep the questions comfortably large, with a small bottom safety cushion.
-    const availableHeight = Math.max(0, board.clientHeight - 8);
-
-    while (list.scrollHeight > availableHeight && size > 1.55) {
-      size -= 0.05;
+    while (list.scrollHeight > availableHeight && size > minimumSize) {
+      size -= 0.025;
       list.style.fontSize = `${size}rem`;
     }
   });
