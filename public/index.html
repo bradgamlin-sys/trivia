@@ -1386,17 +1386,38 @@ function buildSlidesFromRounds(rounds) {
   return generatedSlides;
 }
 function fitQuestionList() {
+  if (!isShow) return;
+
   const board = document.querySelector(".stage-board");
-  const list = document.querySelector(".stage-running-question-list, .stage-running-answer-list");
+  const list = document.querySelector(
+    ".stage-running-question-list, .stage-running-answer-list"
+  );
 
   if (!board || !list) return;
 
-  let fontSize = 2.15;
-  const minFontSize = 1.15;
+  const boardStyles = getComputedStyle(board);
+  const paddingTop = parseFloat(boardStyles.paddingTop) || 0;
+  const paddingBottom = parseFloat(boardStyles.paddingBottom) || 0;
+  const safetySpace = 18;
 
+  const availableHeight = Math.max(
+    120,
+    board.clientHeight - paddingTop - paddingBottom - safetySpace
+  );
+
+  let fontSize = 2.15;
+  const minFontSize = 0.95;
+
+  list.style.lineHeight = "1.22";
+  list.style.paddingTop = "0.08em";
+  list.style.paddingBottom = "0.22em";
+  list.style.overflow = "visible";
   list.style.fontSize = `${fontSize}rem`;
 
-  while (list.scrollHeight > board.clientHeight && fontSize > minFontSize) {
+  while (
+    list.scrollHeight > availableHeight &&
+    fontSize > minFontSize
+  ) {
     fontSize -= 0.05;
     list.style.fontSize = `${fontSize}rem`;
   }
@@ -2696,23 +2717,46 @@ function fitQuestionText() {
   const board = container.closest(".stage-board");
   if (!board) return;
 
-  const availableHeight = Math.max(160, board.clientHeight - 18);
-  const availableWidth = Math.max(260, board.clientWidth - 18);
+  const boardStyles = getComputedStyle(board);
+  const paddingTop = parseFloat(boardStyles.paddingTop) || 0;
+  const paddingRight = parseFloat(boardStyles.paddingRight) || 0;
+  const paddingBottom = parseFloat(boardStyles.paddingBottom) || 0;
+  const paddingLeft = parseFloat(boardStyles.paddingLeft) || 0;
+  const safetySpace = 14;
 
-  container.style.lineHeight = "0.95";
+  container.style.lineHeight = "1.12";
+  container.style.paddingTop = "0.08em";
+  container.style.paddingBottom = "0.18em";
+  container.style.overflow = "visible";
 
   let low = 0.9;
   let high = 6.5;
   let best = low;
 
-  for (let i = 0; i < 18; i++) {
+  function textFits() {
+    const boardRect = board.getBoundingClientRect();
+    const textRect = container.getBoundingClientRect();
+
+    const innerTop = boardRect.top + paddingTop + safetySpace;
+    const innerRight = boardRect.right - paddingRight - safetySpace;
+    const innerBottom = boardRect.bottom - paddingBottom - safetySpace;
+    const innerLeft = boardRect.left + paddingLeft + safetySpace;
+
+    return (
+      textRect.top >= innerTop &&
+      textRect.left >= innerLeft &&
+      textRect.right <= innerRight &&
+      textRect.bottom <= innerBottom &&
+      container.scrollHeight <= container.clientHeight + 2 &&
+      container.scrollWidth <= container.clientWidth + 2
+    );
+  }
+
+  for (let i = 0; i < 20; i++) {
     const mid = (low + high) / 2;
     container.style.fontSize = `${mid}rem`;
 
-    const fitsHeight = container.scrollHeight <= availableHeight;
-    const fitsWidth = container.scrollWidth <= availableWidth;
-
-    if (fitsHeight && fitsWidth) {
+    if (textFits()) {
       best = mid;
       low = mid;
     } else {
@@ -2720,8 +2764,9 @@ function fitQuestionText() {
     }
   }
 
-  container.style.fontSize = `${Math.max(0.9, best - 0.05)}rem`;
+  container.style.fontSize = `${Math.max(0.9, best - 0.08)}rem`;
 }
+
 
   
 function validateGame(){
@@ -2782,12 +2827,32 @@ function render() {
   } else {
     app.innerHTML = renderDisplay();
   }
-  fitQuestionText();
-  fitQuestionList();
-  fitScoreboard();
+  scheduleTextFitting();
   const lbl=document.getElementById('nextActionLabel');
   if(lbl) lbl.textContent=getNextActionLabel();
 }
+
+function runTextFitting() {
+  fitQuestionText();
+  fitQuestionList();
+  fitScoreboard();
+}
+
+function scheduleTextFitting() {
+  runTextFitting();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(runTextFitting);
+  });
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(runTextFitting).catch(() => {});
+  }
+}
+
+window.addEventListener("resize", () => {
+  requestAnimationFrame(runTextFitting);
+});
     socket.on("gameState", (state) => {
       applyGameState(state);
       render();
@@ -2967,4 +3032,3 @@ document.addEventListener("touchend", (e) => {
   </script>
 </body>
 </html>
-
