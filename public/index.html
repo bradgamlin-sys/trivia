@@ -982,141 +982,6 @@ body.tv-mode {
 }
 
 
-
-/* Matching round: show page */
-.stage-matching-layout {
-  width: 100%;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
-  gap: 32px;
-  align-items: start;
-}
-
-.stage-matching-column {
-  min-width: 0;
-}
-
-.stage-matching-heading {
-  color: var(--accent);
-  font-family: "Bree Serif", Georgia, serif;
-  font-size: clamp(1.5rem, 2.4vw, 2.3rem);
-  font-weight: 900;
-  line-height: 1.05;
-  margin-bottom: 14px;
-  text-transform: uppercase;
-}
-
-.stage-matching-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  color: #fff;
-  font-size: clamp(1.15rem, 1.9vw, 1.85rem);
-  line-height: 1.16;
-  padding-bottom: 0.2em;
-}
-
-.stage-matching-item {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
-}
-
-.stage-matching-label {
-  color: var(--accent);
-  font-weight: 1000;
-  text-align: right;
-}
-
-.stage-matching-options {
-  padding: 18px 20px;
-  background: rgba(255,255,255,.045);
-  border: 2px solid rgba(245,197,66,.65);
-  border-radius: 16px;
-}
-
-/* Matching round: printable sheet */
-.print-matching-sheet {
-  width: 13.5in;
-  height: 8in;
-  margin: 0 auto;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 0.14in;
-  page-break-after: always;
-}
-
-.print-matching-body {
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(3.4in, .8fr);
-  gap: 0.24in;
-}
-
-.print-matching-panel {
-  border: 1.5px solid #000;
-  padding: 0.16in 0.18in;
-  min-height: 0;
-}
-
-
-.print-matching-header-right{
-  display:flex;
-  align-items:center;
-  gap:.18in;
-}
-.print-matching-theme{
-  width:1.35in;
-  height:1.35in;
-  object-fit:contain;
-}
-
-.print-matching-heading {
-  font-family: "Bree Serif", Georgia, serif;
-  font-size: 17pt;
-  font-weight: 900;
-  line-height: 1;
-  margin-bottom: 0.12in;
-  text-transform: uppercase;
-}
-
-.print-matching-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.09in;
-  font-size: 13pt;
-  line-height: 1.18;
-}
-
-.print-matching-question {
-  display: grid;
-  grid-template-columns: 0.34in 0.36in 1fr;
-  gap: 0.05in;
-  align-items: start;
-}
-
-.print-matching-blank {
-  display: inline-block;
-  height: 0.2in;
-  border-bottom: 1.5px solid #000;
-}
-
-.print-matching-option {
-  display: grid;
-  grid-template-columns: 0.32in 1fr;
-  gap: 0.07in;
-  align-items: start;
-}
-
-@media (max-width: 1000px) {
-  .stage-matching-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-
 /* Printable picture round page */
 .print-page {
   background: #fff;
@@ -1267,11 +1132,7 @@ body.tv-mode {
     const isFinal = params.get("view") === "final";
     const isShow = params.get("view") === "show";
 const isControl = params.get("view") === "control";
-const printView = params.get("view");
-const isPrintPicture = printView === "print-picture";
-const isPrintMatching = printView === "print-matching";
-const isPrintAll = printView === "print-all" || printView === "print";
-const isPrint = isPrintPicture || isPrintMatching || isPrintAll;
+const isPrint = params.get("view") === "print";
 const isTvMode = params.get("tv") === "1";
    let ROUND_COUNT = 7;
 
@@ -1345,23 +1206,6 @@ function buildSlidesFromRounds(rounds) {
     );
   }
 
-  function isMatchingRound(round) {
-    return Boolean(
-      round &&
-      round.questions.length &&
-      round.questions.every(
-        q => String(q.type || "").toLowerCase() === "matching"
-      )
-    );
-  }
-
-  function getMatchingOptions(round) {
-    return round.questions
-      .map(item => String(item.answer || "").trim())
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
-  }
-
   function addRoundTitle(roundNumber, titleOverride = "") {
     const round = getRound(roundNumber);
     if (!round) return;
@@ -1378,21 +1222,6 @@ function buildSlidesFromRounds(rounds) {
     if (!round) return;
 
     addRoundTitle(roundNumber, options.titleOverride || "");
-
-    if (isMatchingRound(round)) {
-      generatedSlides.push({
-        type: "matchingQuestion",
-        round: round.round,
-        roundTitle: round.title,
-        questions: round.questions.map((item, index) => ({
-          number: index + 1,
-          question: item.question,
-          answer: item.answer
-        })),
-        options: getMatchingOptions(round)
-      });
-      return;
-    }
 
     if (options.titleOnly) return;
 
@@ -1557,41 +1386,27 @@ function buildSlidesFromRounds(rounds) {
   return generatedSlides;
 }
 function fitQuestionList() {
-  if (!isShow) return;
-
-  const board = document.querySelector(".stage-board");
-  const list = document.querySelector(
-    ".stage-running-question-list, .stage-running-answer-list, .stage-running-matching"
+  const lists = document.querySelectorAll(
+    ".stage-running-question-list, .stage-running-answer-list"
   );
 
-  if (!board || !list) return;
+  lists.forEach(list => {
+    const board = list.closest(".stage-board");
+    if (!board) return;
 
-  const boardStyles = getComputedStyle(board);
-  const paddingTop = parseFloat(boardStyles.paddingTop) || 0;
-  const paddingBottom = parseFloat(boardStyles.paddingBottom) || 0;
-  const safetySpace = 18;
+    let size = 2.15;
+    list.style.fontSize = `${size}rem`;
+    list.style.lineHeight = "1.08";
 
-  const availableHeight = Math.max(
-    120,
-    board.clientHeight - paddingTop - paddingBottom - safetySpace
-  );
+    // Only shrink when the content truly overflows.
+    // Keep the questions comfortably large, with a small bottom safety cushion.
+    const availableHeight = Math.max(0, board.clientHeight - 8);
 
-  let fontSize = 2.15;
-  const minFontSize = 0.95;
-
-  list.style.lineHeight = "1.22";
-  list.style.paddingTop = "0.08em";
-  list.style.paddingBottom = "0.22em";
-  list.style.overflow = "visible";
-  list.style.fontSize = `${fontSize}rem`;
-
-  while (
-    list.scrollHeight > availableHeight &&
-    fontSize > minFontSize
-  ) {
-    fontSize -= 0.05;
-    list.style.fontSize = `${fontSize}rem`;
-  }
+    while (list.scrollHeight > availableHeight && size > 1.55) {
+      size -= 0.05;
+      list.style.fontSize = `${size}rem`;
+    }
+  });
 }
 
 function fitScoreboard() {
@@ -2309,129 +2124,63 @@ function getPrintableImages() {
   })));
 }
 
-function getPrintableMatchingRounds() {
-  const matchingSlides = slides.filter(slide => slide.type === "matchingQuestion");
-  const seen = new Set();
+function renderPrintPage() {
+  const images = getPrintableImages();
 
-  return matchingSlides.filter(slide => {
-    const key = String(slide.round);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function renderPrintPage(mode = "all") {
-  const includePictures = mode === "all" || mode === "picture";
-  const includeMatching = mode === "all" || mode === "matching";
-  const images = includePictures ? getPrintableImages() : [];
-  const matchingRounds = includeMatching ? getPrintableMatchingRounds() : [];
-  const picturePages = chunkArray(images, 10);
-  const optionLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-  if (!picturePages.length && !matchingRounds.length) {
+  if (!images.length) {
     return `
       <div class="print-page">
         <div class="print-toolbar">
           <button onclick="window.print()">Print</button>
         </div>
         <div style="text-align:center;padding:40px;font-size:24px;color:#000;">
-          No printable picture or matching rounds were found.
-          Use Type imageRound or matching in the spreadsheet.
+          No picture-round images found. Make sure the spreadsheet Type column says imageRound.
         </div>
       </div>
     `;
   }
 
-  const pictureMarkup = picturePages.map(pageImages => {
-    const filled = [...pageImages];
-    while (filled.length < 10) filled.push(null);
-
-    const pageTitle = "Artist Pictograms, What musical artist are we describing?";
-
-    return `
-      <div class="print-sheet">
-        <div class="print-sheet-header">
-          <div class="print-sheet-title">${escapeHtml(pageTitle)}</div>
-          <div class="print-team-name">
-            Team Name:<span class="print-team-line"></span>
-          </div>
-        </div>
-
-        <div class="print-picture-grid">
-          ${filled.map(img => {
-            if (!img) return `<div class="print-picture-card print-empty-card"></div>`;
-
-            return `
-              <div class="print-picture-card">
-                <div class="print-picture-box">
-                  <img src="/images/${escapeHtml(img.media)}" alt="Picture ${escapeHtml(img.number)}">
-                </div>
-                <div class="print-answer-line">${escapeHtml(img.number)} ____________________</div>
-              </div>
-            `;
-          }).join("")}
-        </div>
-      </div>
-    `;
-  }).join("");
-
-  const matchingMarkup = matchingRounds.map(round => `
-    <div class="print-matching-sheet">
-      <div class="print-sheet-header">
-        <div class="print-sheet-title">${escapeHtml(round.roundTitle)}</div>
-        <div class="print-matching-header-right">
-          <img class="print-matching-theme" src="/theme-current.png" alt="Theme">
-          <div class="print-team-name">
-            Team Name:<span class="print-team-line"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="print-matching-body">
-        <section class="print-matching-panel">
-          <div class="print-matching-heading">Match each item</div>
-          <div class="print-matching-list">
-            ${round.questions.map(item => `
-              <div class="print-matching-question">
-                <strong>${escapeHtml(item.number)}.</strong>
-                <span class="print-matching-blank"></span>
-                <span>${escapeHtml(item.question)}</span>
-              </div>
-            `).join("")}
-          </div>
-        </section>
-
-        <section class="print-matching-panel">
-          <div class="print-matching-heading">Options</div>
-          <div class="print-matching-list">
-            ${round.options.map((option, index) => `
-              <div class="print-matching-option">
-                <strong>${escapeHtml(optionLetters[index] || `${index + 1}`)}.</strong>
-                <span>${escapeHtml(option)}</span>
-              </div>
-            `).join("")}
-          </div>
-        </section>
-      </div>
-    </div>
-  `).join("");
+  const pages = chunkArray(images, 10);
 
   return `
     <div class="print-page">
       <div class="print-toolbar">
-        <button onclick="window.print()">${
-          mode === "picture"
-            ? "Print Picture Round"
-            : mode === "matching"
-              ? "Print Matching Round"
-              : "Print All Handouts"
-        }</button>
+        <button onclick="window.print()">Print Picture Round</button>
         <button class="secondary" onclick="history.back()">Back</button>
       </div>
 
-      ${pictureMarkup}
-      ${matchingMarkup}
+      ${pages.map(pageImages => {
+        const filled = [...pageImages];
+        while (filled.length < 10) filled.push(null);
+
+        const pageTitle = "Artist Pictograms, What musical artist are we describing?";
+
+        return `
+          <div class="print-sheet">
+            <div class="print-sheet-header">
+              <div class="print-sheet-title">${escapeHtml(pageTitle)}</div>
+              <div class="print-team-name">
+                Team Name:<span class="print-team-line"></span>
+              </div>
+            </div>
+
+            <div class="print-picture-grid">
+              ${filled.map((img, index) => {
+                if (!img) return `<div class="print-picture-card print-empty-card"></div>`;
+
+                return `
+                  <div class="print-picture-card">
+                    <div class="print-picture-box">
+                      <img src="/images/${escapeHtml(img.media)}" alt="Picture ${escapeHtml(img.number)}">
+                    </div>
+                    <div class="print-answer-line">${escapeHtml(img.number)} ____________________</div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      }).join("")}
     </div>
   `;
 }
@@ -2479,45 +2228,6 @@ function renderQuestionListSlide(currentSlide) {
           ${escapeHtml(slide.question)}
         </div>
       `).join("")}
-    </div>
-  `;
-
-  return renderStageShell({
-    round: currentSlide.round,
-    title: currentSlide.roundTitle,
-    content
-  });
-}
-
-
-function renderMatchingQuestionSlide(currentSlide) {
-  const optionLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-  const content = `
-    <div class="stage-matching-layout stage-running-matching">
-      <section class="stage-matching-column">
-        <div class="stage-matching-heading">Match each item</div>
-        <div class="stage-matching-list">
-          ${currentSlide.questions.map(item => `
-            <div class="stage-matching-item">
-              <div class="stage-matching-label">${escapeHtml(item.number)}.</div>
-              <div>${escapeHtml(item.question)}</div>
-            </div>
-          `).join("")}
-        </div>
-      </section>
-
-      <section class="stage-matching-column stage-matching-options">
-        <div class="stage-matching-heading">Options</div>
-        <div class="stage-matching-list">
-          ${currentSlide.options.map((option, index) => `
-            <div class="stage-matching-item">
-              <div class="stage-matching-label">${escapeHtml(optionLetters[index] || `${index + 1}`)}.</div>
-              <div>${escapeHtml(option)}</div>
-            </div>
-          `).join("")}
-        </div>
-      </section>
     </div>
   `;
 
@@ -2616,7 +2326,6 @@ const slideRenderers = {
   title: renderTitleSlide,
   questionHero: renderQuestionHeroSlide,
   questionList: renderQuestionListSlide,
-  matchingQuestion: renderMatchingQuestionSlide,
   imageRound: renderImageRoundSlide,
   imageAnswerReveal: renderImageAnswerRevealSlide,
   answerQuestion: renderAnswerQuestionSlide,
@@ -2743,7 +2452,6 @@ function getNextActionLabel() {
   switch(next.type){
     case "questionHero": return `Show Question ${next.number}`;
     case "questionList": return "Add to List";
-    case "matchingQuestion": return "Show Matching Sheet";
     case "answerQuestion": return `Show Answer Question ${next.number}`;
     case "answerReveal": return `Reveal Answer ${next.number}`;
     case "answerList": return "Add Answer to List";
@@ -2846,15 +2554,6 @@ function renderControl() {
 <button onclick="validateGame()" class="control-button-medium">🔍 Validate Game</button>
       </div>
 
-      <div style="max-width:850px;margin:24px auto 8px;text-align:left;color:#f5c542;font-weight:900;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;">
-        🖨 Handouts
-      </div>
-      <div class="control-row">
-        <button onclick="openHandout('picture')" class="control-button-medium">🖼 Picture Round</button>
-        <button onclick="openHandout('matching')" class="control-button-medium">🔗 Matching Round</button>
-        <button onclick="openHandout('all')" class="control-button-medium">📄 All Handouts</button>
-      </div>
-
       <div class="control-row">
         <button onclick="setDisplayMode('presentation')" class="control-button-medium">🎮 Game</button>
         <button onclick="setDisplayMode('scores')" class="control-button-medium">📊 Scores</button>
@@ -2895,13 +2594,6 @@ function renderControl() {
 function openPresentationMode() {
   const url = `${window.location.origin}${window.location.pathname}?view=show&tv=1`;
   window.open(url, "bgosPresentation", "popup=yes,width=1600,height=900");
-}
-
-function openHandout(kind) {
-  const allowed = new Set(["picture", "matching", "all"]);
-  const safeKind = allowed.has(kind) ? kind : "all";
-  const url = `${window.location.origin}${window.location.pathname}?view=print-${safeKind}`;
-  window.open(url, `bgosPrint${safeKind}`, "popup=yes,width=1400,height=900");
 }
 
 function toggleFullscreen() {
@@ -3014,54 +2706,23 @@ function moveToNextScore(event) {
   }
 }
 function fitQuestionText() {
-  if (!isShow) return;
+  const container = document.querySelector(".stage-question-text");
+  const board = document.querySelector(".stage-board");
+  if (!container || !board) return;
 
-  const container = document.querySelector(".question-container");
-  if (!container) return;
+  container.style.lineHeight = "1.02";
 
-  const board = container.closest(".stage-board");
-  if (!board) return;
-
-  const boardStyles = getComputedStyle(board);
-  const paddingTop = parseFloat(boardStyles.paddingTop) || 0;
-  const paddingRight = parseFloat(boardStyles.paddingRight) || 0;
-  const paddingBottom = parseFloat(boardStyles.paddingBottom) || 0;
-  const paddingLeft = parseFloat(boardStyles.paddingLeft) || 0;
-  const safetySpace = 14;
-
-  container.style.lineHeight = "1.12";
-  container.style.paddingTop = "0.08em";
-  container.style.paddingBottom = "0.18em";
-  container.style.overflow = "visible";
-
-  let low = 0.9;
-  let high = 6.5;
+  // Leave a modest cushion for descenders without sacrificing readable size.
+  const availableHeight = Math.max(0, board.clientHeight - 8);
+  let low = 1.8;
+  let high = 5.4;
   let best = low;
 
-  function textFits() {
-    const boardRect = board.getBoundingClientRect();
-    const textRect = container.getBoundingClientRect();
-
-    const innerTop = boardRect.top + paddingTop + safetySpace;
-    const innerRight = boardRect.right - paddingRight - safetySpace;
-    const innerBottom = boardRect.bottom - paddingBottom - safetySpace;
-    const innerLeft = boardRect.left + paddingLeft + safetySpace;
-
-    return (
-      textRect.top >= innerTop &&
-      textRect.left >= innerLeft &&
-      textRect.right <= innerRight &&
-      textRect.bottom <= innerBottom &&
-      container.scrollHeight <= container.clientHeight + 2 &&
-      container.scrollWidth <= container.clientWidth + 2
-    );
-  }
-
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 18; i++) {
     const mid = (low + high) / 2;
     container.style.fontSize = `${mid}rem`;
 
-    if (textFits()) {
+    if (container.scrollHeight <= availableHeight) {
       best = mid;
       low = mid;
     } else {
@@ -3069,7 +2730,7 @@ function fitQuestionText() {
     }
   }
 
-  container.style.fontSize = `${Math.max(0.9, best - 0.08)}rem`;
+  container.style.fontSize = `${Math.max(1.8, best - 0.01)}rem`;
 }
 
 
@@ -3127,12 +2788,8 @@ function render() {
     app.innerHTML = renderShow();
   } else if (isControl) {
     app.innerHTML = renderControl();
-  } else if (isPrintPicture) {
-    app.innerHTML = renderPrintPage("picture");
-  } else if (isPrintMatching) {
-    app.innerHTML = renderPrintPage("matching");
-  } else if (isPrintAll) {
-    app.innerHTML = renderPrintPage("all");
+  } else if (isPrint) {
+    app.innerHTML = renderPrintPage();
   } else {
     app.innerHTML = renderDisplay();
   }
