@@ -3100,6 +3100,12 @@ function renderControl() {
 <div id="nextActionLabel" style="font-size:1rem;font-weight:700;margin-top:6px;">Next</div>
 </button>
             </div>
+            ${isGameMode ? `
+              <div class="control-row">
+                <button onclick="showJumpOverlay('questions')" class="control-button-medium">Questions</button>
+                <button onclick="showJumpOverlay('answers')" class="control-button-medium">Answers</button>
+              </div>
+            ` : ""}
           `
           : ""
       }
@@ -3142,13 +3148,6 @@ function renderControl() {
           `
           : ""
       }
-
-      ${isGameMode ? `
-        <div class="control-row">
-          <button onclick="showJumpOverlay('questions')" class="control-button-medium">Questions</button>
-          <button onclick="showJumpOverlay('answers')" class="control-button-medium">Answers</button>
-        </div>
-      ` : ""}
 
       ${renderJumpOverlay()}
     </div>
