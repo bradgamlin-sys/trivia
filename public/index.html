@@ -1017,45 +1017,241 @@ body.tv-mode {
   height:8in;
   margin:0 auto;
   display:grid;
-  grid-template-rows:auto 1fr;
-  gap:.12in;
+  grid-template-rows:1.18in 1fr .34in;
+  background:#fffdf6;
+  color:#111;
+  border:3px solid #111;
+  box-shadow:0 0 0 7px #f5c542 inset;
   page-break-after:always;
   break-after:page;
+  overflow:hidden;
+}
+.print-matching-banner {
+  display:grid;
+  grid-template-columns:.72in 1fr 3.05in;
+  align-items:center;
+  gap:.18in;
+  padding:.12in .22in;
+  color:#fff;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(245,197,66,.24), transparent 28%),
+    linear-gradient(100deg,#090909 0%,#262626 52%,#090909 100%);
+  border-bottom:4px solid #f5c542;
+}
+.print-matching-theme {
+  width:.62in;
+  height:.62in;
+  object-fit:cover;
+  border-radius:10px;
+  border:3px solid #fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.45);
+  background:#fff;
+}
+.print-matching-title-wrap { min-width:0; }
+.print-matching-brand {
+  color:#f5c542;
+  font-family:"Bree Serif",Georgia,serif;
+  font-size:22pt;
+  line-height:.95;
+  font-weight:900;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+}
+.print-matching-subtitle {
+  margin-top:.045in;
+  max-width:8.2in;
+  font-size:12.5pt;
+  line-height:1.08;
+  font-weight:900;
+  white-space:normal;
+  overflow:visible;
+  overflow-wrap:anywhere;
+}
+.print-matching-round-label {
+  margin-top:.03in;
+  color:#d7d7d7;
+  font-size:8.5pt;
+  font-weight:900;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+}
+.print-matching-team {
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:.08in;
+  align-items:end;
+  font-size:11.5pt;
+  font-weight:900;
+  white-space:nowrap;
+}
+.print-matching-team-line {
+  height:.22in;
+  border-bottom:2px solid #fff;
 }
 .print-matching-body {
   min-height:0;
   display:grid;
-  grid-template-columns:1.35fr .85fr;
-  gap:.18in;
+  grid-template-columns:1.44fr .86fr;
+  gap:.16in;
+  padding:.16in .18in .12in;
 }
-.print-matching-panel { border:1.5px solid #000; padding:.12in .16in; min-height:0; }
-.print-matching-header-right { display:flex; align-items:flex-end; gap:.2in; }
-.print-matching-theme { width:.72in; height:.72in; object-fit:contain; }
-.print-matching-heading {
+.print-matching-panel {
+  min-height:0;
+  border:2px solid #111;
+  border-radius:12px;
+  background:#fff;
+  overflow:hidden;
+  padding:0;
+}
+.print-matching-panel-title {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:.1in;
+  padding:.075in .14in;
+  background:#f5c542;
+  color:#111;
+  border-bottom:2px solid #111;
   font-family:"Bree Serif",Georgia,serif;
-  font-size:17pt;
+  font-size:15.5pt;
   font-weight:900;
-  border-bottom:1px solid #000;
-  padding-bottom:.05in;
-  margin-bottom:.08in;
+  text-transform:uppercase;
+  letter-spacing:.4px;
 }
-.print-matching-list { display:flex; flex-direction:column; gap:.075in; }
+.print-matching-panel-note {
+  font-family:"Montserrat",Arial,sans-serif;
+  font-size:8.2pt;
+  font-weight:850;
+  text-transform:none;
+  letter-spacing:0;
+}
+.print-matching-list {
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  padding:.04in .08in .06in;
+}
 .print-matching-question {
   display:grid;
-  grid-template-columns:.28in .65in 1fr;
-  gap:.06in;
-  align-items:baseline;
-  font-size:12.5pt;
-  line-height:1.12;
+  grid-template-columns:.28in .58in 1fr;
+  gap:.065in;
+  align-items:center;
+  min-height:.43in;
+  padding:.04in .06in;
+  font-size:11.3pt;
+  line-height:1.08;
+  border-bottom:1px solid #d5d5d5;
 }
-.print-matching-blank { border-bottom:1.5px solid #000; height:.16in; }
 .print-matching-option {
   display:grid;
-  grid-template-columns:.28in 1fr;
-  gap:.07in;
-  font-size:12.5pt;
-  line-height:1.12;
+  grid-template-columns:.31in 1fr;
+  gap:.08in;
+  align-items:center;
+  min-height:.39in;
+  padding:.04in .08in;
+  font-size:11.2pt;
+  line-height:1.08;
+  border-bottom:1px solid #d5d5d5;
 }
+.print-matching-question:nth-child(even),
+.print-matching-option:nth-child(even) { background:#faf4da; }
+.print-matching-question:last-child,
+.print-matching-option:last-child { border-bottom:none; }
+.print-matching-number,
+.print-matching-letter {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:.25in;
+  height:.25in;
+  border-radius:50%;
+  background:#111;
+  color:#fff;
+  font-weight:900;
+  font-size:9.5pt;
+}
+.print-matching-blank {
+  height:.24in;
+  border:2px solid #111;
+  border-radius:5px;
+  background:#fff;
+}
+.print-matching-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 .2in;
+  background:#111;
+  color:#fff;
+  border-top:3px solid #f5c542;
+  font-size:8.3pt;
+  font-weight:850;
+  letter-spacing:.35px;
+}
+.print-matching-footer strong { color:#f5c542; }
+
+.print-title-editor {
+  flex:1 1 520px;
+  min-width:320px;
+  display:grid;
+  grid-template-columns:auto minmax(320px,1fr);
+  gap:6px 10px;
+  align-items:center;
+  color:#111;
+}
+.print-title-editor label {
+  font-weight:900;
+  white-space:nowrap;
+}
+.print-title-editor textarea {
+  width:100%;
+  min-height:54px;
+  resize:vertical;
+  padding:9px 11px;
+  border:2px solid #111;
+  border-radius:7px;
+  background:#fff;
+  color:#111;
+  font:800 15px "Montserrat",Arial,sans-serif;
+  line-height:1.2;
+}
+.print-title-editor-note {
+  grid-column:2;
+  font-size:12px;
+  color:#555;
+}
+
+.handout-title-editor {
+  max-width:850px;
+  margin:10px auto 14px;
+  padding:14px;
+  border:1px solid rgba(245,197,66,.5);
+  border-radius:12px;
+  background:rgba(255,255,255,.055);
+  text-align:left;
+}
+.handout-title-editor label {
+  display:block;
+  color:#fff;
+  font-weight:900;
+  margin-bottom:8px;
+}
+.handout-title-editor input {
+  width:100%;
+  padding:11px 13px;
+  border:2px solid #f5c542;
+  border-radius:8px;
+  background:#111;
+  color:#fff;
+  font:800 1rem "Montserrat",Arial,sans-serif;
+}
+.handout-title-preview {
+  margin-top:9px;
+  color:#f5c542;
+  font-family:"Bree Serif",Georgia,serif;
+  font-size:1.15rem;
+}
+
 .tv-activity-pulse {
   position:fixed;
   width:2px;
@@ -1185,123 +1381,6 @@ body.tv-mode {
   z-index: 10;
 }
 
-
-.print-matching-sheet {
-  width: 13.5in;
-  height: 8in;
-  margin: 0 auto;
-  display: grid;
-  grid-template-rows: 1.28in 1fr .34in;
-  background: #fffdf6;
-  color: #111;
-  border: 3px solid #111;
-  box-shadow: 0 0 0 7px #f5c542 inset;
-  page-break-after: always;
-  break-after: page;
-  overflow: hidden;
-}
-.print-matching-banner {
-  display: grid;
-  grid-template-columns: .72in 1fr 3.05in;
-  align-items: center;
-  gap: .18in;
-  padding: .12in .22in;
-  color: #fff;
-  background: linear-gradient(100deg,#090909 0%,#262626 52%,#090909 100%);
-  border-bottom: 4px solid #f5c542;
-}
-.print-matching-theme {
-  width: .62in;
-  height: .62in;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 3px solid #fff;
-  background: #fff;
-}
-.print-matching-title-wrap { min-width: 0; }
-.print-matching-brand {
-  color: #f5c542;
-  font-family: "Bree Serif", Georgia, serif;
-  font-size: 22pt;
-  line-height: .95;
-  font-weight: 900;
-  letter-spacing: .7px;
-  text-transform: uppercase;
-}
-.print-matching-subtitle {
-  margin-top: .045in;
-  max-width: 8.2in;
-  font-size: 12.5pt;
-  line-height: 1.08;
-  font-weight: 900;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-.print-matching-round-label {
-  margin-top: .03in;
-  color: #d7d7d7;
-  font-size: 8.5pt;
-  font-weight: 900;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-.print-matching-team {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: .08in;
-  align-items: end;
-  font-size: 11.5pt;
-  font-weight: 900;
-  white-space: nowrap;
-}
-.print-matching-team-line {
-  height: .22in;
-  border-bottom: 2px solid #fff;
-}
-.print-matching-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 .2in;
-  background: #111;
-  color: #fff;
-  border-top: 3px solid #f5c542;
-  font-size: 8.3pt;
-  font-weight: 850;
-}
-.print-matching-footer strong { color: #f5c542; }
-
-.print-title-editor {
-  flex: 1 1 560px;
-  min-width: 340px;
-  display: grid;
-  grid-template-columns: auto minmax(340px, 1fr);
-  gap: 6px 10px;
-  align-items: center;
-  color: #fff;
-}
-.print-title-editor label {
-  font-weight: 900;
-  white-space: nowrap;
-}
-.print-title-editor textarea {
-  width: 100%;
-  min-height: 72px;
-  resize: vertical;
-  padding: 9px 11px;
-  border: 2px solid #f5c542;
-  border-radius: 7px;
-  background: #fff;
-  color: #111;
-  font: 800 15px "Montserrat", Arial, sans-serif;
-  line-height: 1.2;
-}
-.print-title-editor-note {
-  grid-column: 2;
-  font-size: 12px;
-  color: #ddd;
-}
-
 @page {
   size: legal landscape;
   margin: 0.25in;
@@ -1359,7 +1438,8 @@ body.tv-mode {
         const saved = localStorage.getItem(MATCHING_HANDOUT_TITLE_KEY);
         if (saved && saved.trim()) return saved.trim();
       } catch (error) {
-        console.warn("Matching subtitle storage unavailable.", error);
+        // Some browsers block localStorage when an HTML file is opened directly.
+        console.warn("Matching title storage is unavailable; using this-session fallback.", error);
       }
       return matchingHandoutTitleFallback;
     }
@@ -1371,8 +1451,11 @@ body.tv-mode {
       try {
         localStorage.setItem(MATCHING_HANDOUT_TITLE_KEY, cleaned);
       } catch (error) {
-        console.warn("Could not save matching subtitle.", error);
+        console.warn("Could not save matching title in localStorage.", error);
       }
+
+      const preview = document.getElementById("matchingHandoutTitlePreview");
+      if (preview) preview.textContent = getMatchingHandoutTitle();
 
       document.querySelectorAll(".print-matching-subtitle").forEach(element => {
         element.textContent = getMatchingHandoutTitle();
@@ -2619,11 +2702,11 @@ function renderPrintPage(mode = "all") {
       <label for="matchingPrintTitleInput">Matching handout subtitle</label>
       <textarea
         id="matchingPrintTitleInput"
-        rows="3"
+        rows="2"
         oninput="setMatchingHandoutTitle(this.value)"
         placeholder="Example: Match the Word to Its Meaning"
       >${escapeHtml(getMatchingHandoutTitle())}</textarea>
-      <div class="print-title-editor-note">Long subtitles can wrap across multiple lines.</div>
+      <div class="print-title-editor-note">Long titles may wrap onto two lines in the banner.</div>
     </div>` : "";
 
   return `
@@ -3028,6 +3111,7 @@ function renderControl() {
       </div>
 
       <div style="max-width:850px;margin:24px auto 8px;text-align:left;color:#f5c542;font-weight:900;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;">🖨 Handouts</div>
+
       <div class="control-row">
         <button onclick="openHandout('picture')" class="control-button-medium">🖼 Picture Round</button>
         <button onclick="openHandout('matching')" class="control-button-medium">🔗 Matching Round</button>
@@ -3444,34 +3528,173 @@ function parseCSV(csvText) {
     return row;
   });
 }
-  async function loadQuestions() {
+const QUESTION_ROWS_CACHE_KEY = "bgosQuestionRowsCache_v1";
+const PUBLISHED_SHEET_ID = "2PACX-1vTR1_YPoAcNeQ1Oaw3K1TuyDYFFww9u2IntGd5ZlHTd-3qy7RnAalOeRmsHTDIvi1A4o7xfjBviNca-";
+
+function readCachedQuestionRows() {
   try {
-   const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vTR1_YPoAcNeQ1Oaw3K1TuyDYFFww9u2IntGd5ZlHTd-3qy7RnAalOeRmsHTDIvi1A4o7xfjBviNca-/pub?output=csv&cacheBust=" + Date.now());
-
-if (!response.ok) {
-  throw new Error(`Spreadsheet request failed (${response.status})`);
-}
-
-const csvText = await response.text();
-const loadedRows = parseCSV(csvText);
-
-if (!loadedRows.length) {
-  throw new Error("The published spreadsheet returned no question rows.");
-}
-
-loadedQuestionRows = loadedRows;
-slides = buildSlidesFromRows(loadedRows);
-ROUND_COUNT = Math.max(1, ...loadedRows.map(r => Number(r.roundOrder) || 0));
-questionsLoadState = "ready";
-questionsLoadError = "";
-applyGameState(gameState);
-render();
+    const parsed = JSON.parse(localStorage.getItem(QUESTION_ROWS_CACHE_KEY) || "null");
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
-    questionsLoadState = "error";
-    questionsLoadError = error?.message || String(error);
-    console.error("Could not load trivia spreadsheet", error);
+    return [];
+  }
+}
+
+function cacheQuestionRows(rows) {
+  try {
+    localStorage.setItem(QUESTION_ROWS_CACHE_KEY, JSON.stringify(rows));
+  } catch (error) {
+    console.warn("Could not cache trivia rows.", error);
+  }
+}
+
+function applyLoadedQuestionRows(rows, sourceLabel = "") {
+  const usableRows = (Array.isArray(rows) ? rows : []).filter(row =>
+    Number(row.roundOrder) > 0 &&
+    String(row.round || "").trim()
+  );
+
+  if (!usableRows.length) {
+    throw new Error(`${sourceLabel || "Question source"} returned no usable round rows.`);
+  }
+
+  loadedQuestionRows = usableRows;
+  slides = buildSlidesFromRows(usableRows);
+
+  if (!slides.length) {
+    throw new Error(`${sourceLabel || "Question source"} produced no presentation slides.`);
+  }
+
+  ROUND_COUNT = Math.max(
+    1,
+    ...usableRows.map(row => Number(row.roundOrder) || 0)
+  );
+
+  questionsLoadState = "ready";
+  questionsLoadError = "";
+  cacheQuestionRows(usableRows);
+  applyGameState(gameState);
+  render();
+}
+
+async function fetchQuestionRowsFromCsv(url, sourceLabel) {
+  const response = await fetch(url, {
+    cache: "no-store",
+    redirect: "follow"
+  });
+
+  if (!response.ok) {
+    throw new Error(`${sourceLabel} request failed (${response.status}).`);
+  }
+
+  const csvText = await response.text();
+
+  if (!csvText.trim()) {
+    throw new Error(`${sourceLabel} returned an empty response.`);
+  }
+
+  const rows = parseCSV(csvText);
+
+  if (!rows.length) {
+    throw new Error(`${sourceLabel} returned no parsed rows.`);
+  }
+
+  return rows;
+}
+
+async function fetchQuestionRowsFromJson(url, sourceLabel) {
+  const response = await fetch(url, { cache: "no-store" });
+
+  if (!response.ok) {
+    throw new Error(`${sourceLabel} request failed (${response.status}).`);
+  }
+
+  const data = await response.json();
+  const rows = Array.isArray(data) ? data : data?.rows;
+
+  if (!Array.isArray(rows) || !rows.length) {
+    throw new Error(`${sourceLabel} returned no rows.`);
+  }
+
+  return rows;
+}
+
+async function loadQuestions() {
+  questionsLoadState = "loading";
+  questionsLoadError = "";
+
+  const cachedRows = readCachedQuestionRows();
+
+  // Give the game and print windows usable data immediately while refreshing.
+  if (cachedRows.length) {
+    try {
+      applyLoadedQuestionRows(cachedRows, "Saved question cache");
+    } catch (error) {
+      console.warn("Saved question cache was unusable.", error);
+    }
+  } else {
     render();
   }
+
+  const stamp = Date.now();
+  const attempts = [
+    {
+      label: "Published Google Sheet",
+      load: () => fetchQuestionRowsFromCsv(
+        `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_SHEET_ID}/pub?gid=0&single=true&output=csv&cacheBust=${stamp}`,
+        "Published Google Sheet"
+      )
+    },
+    {
+      label: "Published Google Sheet fallback",
+      load: () => fetchQuestionRowsFromCsv(
+        `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_SHEET_ID}/pub?output=csv&cacheBust=${stamp}`,
+        "Published Google Sheet fallback"
+      )
+    },
+    {
+      label: "Local questions.csv",
+      load: () => fetchQuestionRowsFromCsv(
+        `/questions.csv?cacheBust=${stamp}`,
+        "Local questions.csv"
+      )
+    },
+    {
+      label: "Local questions.json",
+      load: () => fetchQuestionRowsFromJson(
+        `/questions.json?cacheBust=${stamp}`,
+        "Local questions.json"
+      )
+    }
+  ];
+
+  const errors = [];
+
+  for (const attempt of attempts) {
+    try {
+      const rows = await attempt.load();
+      applyLoadedQuestionRows(rows, attempt.label);
+      console.info(`BGOS loaded ${rows.length} question rows from ${attempt.label}.`);
+      return;
+    } catch (error) {
+      errors.push(`${attempt.label}: ${error?.message || error}`);
+      console.warn(`BGOS question source failed: ${attempt.label}`, error);
+    }
+  }
+
+  if (cachedRows.length) {
+    questionsLoadState = "ready";
+    questionsLoadError = "";
+    render();
+    console.warn("BGOS is using saved question data because live sources failed.", errors);
+    return;
+  }
+
+  questionsLoadState = "error";
+  questionsLoadError =
+    "No question source loaded. " + errors.join(" | ");
+  console.error("Could not load trivia data.", errors);
+  render();
 }
 
 loadQuestions();
