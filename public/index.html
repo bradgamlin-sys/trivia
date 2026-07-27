@@ -1338,15 +1338,16 @@ function buildSlidesFromRounds(rounds) {
   function isMatchingRound(round) {
     if (!round || !round.questions.length) return false;
 
-    const roundTitleLooksMatching =
-      normalizeQuestionType(round.title).includes("matching") ||
-      normalizeQuestionType(round.title).includes("match");
+    const normalizedTitle = normalizeQuestionType(round.title);
+    const titleLooksMatching =
+      normalizedTitle.includes("matching") ||
+      normalizedTitle.includes("match");
 
-    const everyRowIsMatchingType = round.questions.every(
+    const hasMatchingRows = round.questions.some(
       q => isMatchingQuestionType(q.type)
     );
 
-    return roundTitleLooksMatching || everyRowIsMatchingType;
+    return titleLooksMatching || hasMatchingRows;
   }
 
   function getMatchingOptions(round) {
@@ -1646,6 +1647,7 @@ function buildSlidesFromRows(rows) {
   return buildSlidesFromRounds(groupedRounds);
 }
 let slides = buildSlidesFromRounds(rounds);
+let loadedQuestionRows = [];
 let questionsLoadState = "loading";
 let questionsLoadError = "";
 
@@ -2299,6 +2301,58 @@ function getPrintableImages() {
 }
 
 function getPrintableMatchingRounds() {
+  // Build handouts directly from spreadsheet rows. This deliberately avoids
+  // depending on the live presentation slide sequence.
+  const matchingRows = loadedQuestionRows.filter(row => {
+    const title = normalizeQuestionType(row.round);
+    return (
+      title.includes("matching") ||
+      title.includes("match") ||
+      isMatchingQuestionType(row.type)
+    );
+  });
+
+  const grouped = new Map();
+
+  matchingRows.forEach(row => {
+    const roundNumber = Number(row.roundOrder) || 3;
+    const title = String(row.round || "Matching").trim() || "Matching";
+    const key = `${roundNumber}::${title}`;
+
+    if (!grouped.has(key)) {
+      grouped.set(key, {
+        type: "matchingQuestion",
+        round: roundNumber,
+        roundTitle: title,
+        questions: []
+      });
+    }
+
+    const question = String(row.question || "").trim();
+    const answer = String(row.answer || "").trim();
+
+    if (question || answer) {
+      grouped.get(key).questions.push({
+        number: grouped.get(key).questions.length + 1,
+        question,
+        answer
+      });
+    }
+  });
+
+  const directRounds = [...grouped.values()]
+    .filter(round => round.questions.length)
+    .map(round => ({
+      ...round,
+      options: round.questions
+        .map(item => item.answer)
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+    }));
+
+  if (directRounds.length) return directRounds;
+
+  // Fallback for built-in/demo data or older files.
   const matchingSlides = slides.filter(slide => slide.type === "matchingQuestion");
   const seen = new Set();
   return matchingSlides.filter(slide => {
@@ -2322,7 +2376,7 @@ function renderPrintPage(mode = "all") {
       ? "Loading printable rounds from the spreadsheet…"
       : questionsLoadState === "error"
         ? `Could not load the spreadsheet. ${escapeHtml(questionsLoadError || "Check the browser console and published-sheet access.")}`
-        : "No printable rounds were recognized. A matching round is recognized when the Round title contains Matching or Match, even when Type is question. Picture rounds still use Type imageRound, pictureRound, picture, or image.";
+        : "No printable rounds were recognized. Matching accepts: matching, match, matchingRound, or matchRound. Picture rounds accept: imageRound, pictureRound, picture, or image.";
 
     return `
       <div class="print-page">
@@ -3215,6 +3269,7 @@ if (!loadedRows.length) {
   throw new Error("The published spreadsheet returned no question rows.");
 }
 
+loadedQuestionRows = loadedRows;
 slides = buildSlidesFromRows(loadedRows);
 ROUND_COUNT = Math.max(1, ...loadedRows.map(r => Number(r.roundOrder) || 0));
 questionsLoadState = "ready";
