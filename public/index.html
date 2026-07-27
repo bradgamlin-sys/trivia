@@ -1286,6 +1286,27 @@ const rounds = [
     ]
   }
 ];
+
+function normalizeQuestionType(value) {
+  return String(value || "")
+    .replace(/^\uFEFF/, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "");
+}
+
+function isImageQuestionType(value) {
+  return ["imageround", "picture", "pictureround", "image"].includes(
+    normalizeQuestionType(value)
+  );
+}
+
+function isMatchingQuestionType(value) {
+  return ["matching", "match", "matchinground", "matchround"].includes(
+    normalizeQuestionType(value)
+  );
+}
+
 function buildSlidesFromRounds(rounds) {
   const generatedSlides = [];
   const roundMap = new Map(
@@ -1300,7 +1321,7 @@ function buildSlidesFromRounds(rounds) {
     return Boolean(
       round &&
       round.questions.length &&
-      round.questions.every(q => q.type === "imageRound")
+      round.questions.every(q => isImageQuestionType(q.type))
     );
   }
 
@@ -1319,7 +1340,7 @@ function buildSlidesFromRounds(rounds) {
       round &&
       round.questions.length &&
       round.questions.every(
-        q => String(q.type || "").trim().toLowerCase() === "matching"
+        q => isMatchingQuestionType(q.type)
       )
     );
   }
@@ -1621,6 +1642,8 @@ function buildSlidesFromRows(rows) {
   return buildSlidesFromRounds(groupedRounds);
 }
 let slides = buildSlidesFromRounds(rounds);
+let questionsLoadState = "loading";
+let questionsLoadError = "";
 
 
 let teams = [];
@@ -2291,11 +2314,20 @@ function renderPrintPage(mode = "all") {
   const optionLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   if (!picturePages.length && !matchingRounds.length) {
+    const message = questionsLoadState === "loading"
+      ? "Loading printable rounds from the spreadsheet…"
+      : questionsLoadState === "error"
+        ? `Could not load the spreadsheet. ${escapeHtml(questionsLoadError || "Check the browser console and published-sheet access.")}`
+        : "No printable rounds were recognized. Matching accepts: matching, match, matchingRound, or matchRound. Picture rounds accept: imageRound, pictureRound, picture, or image.";
+
     return `
       <div class="print-page">
-        <div class="print-toolbar"><button onclick="window.print()">Print</button></div>
+        <div class="print-toolbar">
+          <button onclick="location.reload()">Reload Handouts</button>
+          <button class="secondary" onclick="history.back()">Back</button>
+        </div>
         <div style="text-align:center;padding:40px;font-size:24px;color:#000;">
-          No printable rounds found. Use Type imageRound or matching in the spreadsheet.
+          ${message}
         </div>
       </div>`;
   }
@@ -2956,7 +2988,7 @@ function validateGame(){
       if(q.answer===undefined || String(q.answer).trim()===""){
         issues.push(`R${rIdx+1} Q${qIdx+1}: Missing answer`);
       }
-      if(q.type==="imageRound" && (!q.media || !String(q.media).trim())){
+      if(isImageQuestionType(q.type) && (!q.media || !String(q.media).trim())){
         issues.push(`R${rIdx+1} Picture ${qIdx+1}: Missing image filename`);
       }
       if(q.hostNote!==undefined && String(q.hostNote).trim()===""){
@@ -3138,15 +3170,28 @@ function parseCSV(csvText) {
     rows.push(currentRow);
   }
 
-  const headers = (rows.shift() || []).map(header => header.trim());
+  const headers = (rows.shift() || []).map(header =>
+    String(header || "")
+      .replace(/^\uFEFF/, "")
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_-]+(.)?/g, (_, next) => next ? next.toUpperCase() : "")
+  );
 
   return rows.map(values => {
     const row = {};
 
     headers.forEach((header, index) => {
-      const key = header.charAt(0).toLowerCase() + header.slice(1);
-      row[key] = values[index] || "";
+      row[header] = values[index] || "";
     });
+
+    // Common spreadsheet-header aliases.
+    row.roundOrder = row.roundOrder || row.roundNumber || row.roundNum || row.order || "";
+    row.round = row.round || row.roundTitle || row.category || "";
+    row.type = row.type || row.questionType || row.roundType || "";
+    row.question = row.question || row.prompt || row.clue || row.item || "";
+    row.answer = row.answer || row.match || row.option || row.response || "";
+    row.media = row.media || row.image || row.imageFile || row.filename || "";
 
     return row;
   });
@@ -3154,15 +3199,28 @@ function parseCSV(csvText) {
   async function loadQuestions() {
   try {
    const response = await fetch("https://docs.google.com/spreadsheets/d/e/2PACX-1vTR1_YPoAcNeQ1Oaw3K1TuyDYFFww9u2IntGd5ZlHTd-3qy7RnAalOeRmsHTDIvi1A4o7xfjBviNca-/pub?output=csv&cacheBust=" + Date.now());
+
+if (!response.ok) {
+  throw new Error(`Spreadsheet request failed (${response.status})`);
+}
+
 const csvText = await response.text();
 const loadedRows = parseCSV(csvText);
 
+if (!loadedRows.length) {
+  throw new Error("The published spreadsheet returned no question rows.");
+}
+
 slides = buildSlidesFromRows(loadedRows);
 ROUND_COUNT = Math.max(1, ...loadedRows.map(r => Number(r.roundOrder) || 0));
+questionsLoadState = "ready";
+questionsLoadError = "";
 applyGameState(gameState);
-    render();
+render();
   } catch (error) {
-    console.error("Could not load questions.json", error);
+    questionsLoadState = "error";
+    questionsLoadError = error?.message || String(error);
+    console.error("Could not load trivia spreadsheet", error);
     render();
   }
 }
