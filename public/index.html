@@ -1017,7 +1017,7 @@ body.tv-mode {
   height:8in;
   margin:0 auto;
   display:grid;
-  grid-template-rows:.94in 1fr .34in;
+  grid-template-rows:1.18in 1fr .34in;
   background:#fffdf6;
   color:#111;
   border:3px solid #111;
@@ -1059,12 +1059,13 @@ body.tv-mode {
 }
 .print-matching-subtitle {
   margin-top:.045in;
+  max-width:8.2in;
   font-size:12.5pt;
-  line-height:1.05;
+  line-height:1.08;
   font-weight:900;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  white-space:normal;
+  overflow:visible;
+  overflow-wrap:anywhere;
 }
 .print-matching-round-label {
   margin-top:.03in;
@@ -1188,6 +1189,37 @@ body.tv-mode {
   letter-spacing:.35px;
 }
 .print-matching-footer strong { color:#f5c542; }
+
+.print-title-editor {
+  flex:1 1 520px;
+  min-width:320px;
+  display:grid;
+  grid-template-columns:auto minmax(320px,1fr);
+  gap:6px 10px;
+  align-items:center;
+  color:#111;
+}
+.print-title-editor label {
+  font-weight:900;
+  white-space:nowrap;
+}
+.print-title-editor textarea {
+  width:100%;
+  min-height:54px;
+  resize:vertical;
+  padding:9px 11px;
+  border:2px solid #111;
+  border-radius:7px;
+  background:#fff;
+  color:#111;
+  font:800 15px "Montserrat",Arial,sans-serif;
+  line-height:1.2;
+}
+.print-title-editor-note {
+  grid-column:2;
+  font-size:12px;
+  color:#555;
+}
 
 .handout-title-editor {
   max-width:850px;
@@ -1424,6 +1456,10 @@ body.tv-mode {
 
       const preview = document.getElementById("matchingHandoutTitlePreview");
       if (preview) preview.textContent = getMatchingHandoutTitle();
+
+      document.querySelectorAll(".print-matching-subtitle").forEach(element => {
+        element.textContent = getMatchingHandoutTitle();
+      });
     }
     const isFinal = params.get("view") === "final";
     const isShow = params.get("view") === "show";
@@ -2661,9 +2697,25 @@ function renderPrintPage(mode = "all") {
     </div>`).join("");
 
   const label = mode === "picture" ? "Print Picture Round" : mode === "matching" ? "Print Matching Round" : "Print All Handouts";
+  const matchingTitleEditor = mode === "matching" || mode === "all" ? `
+    <div class="print-title-editor">
+      <label for="matchingPrintTitleInput">Matching handout subtitle</label>
+      <textarea
+        id="matchingPrintTitleInput"
+        rows="2"
+        oninput="setMatchingHandoutTitle(this.value)"
+        placeholder="Example: Match the Word to Its Meaning"
+      >${escapeHtml(getMatchingHandoutTitle())}</textarea>
+      <div class="print-title-editor-note">Long titles may wrap onto two lines in the banner.</div>
+    </div>` : "";
+
   return `
     <div class="print-page">
-      <div class="print-toolbar"><button onclick="window.print()">${label}</button><button class="secondary" onclick="history.back()">Back</button></div>
+      <div class="print-toolbar">
+        <button onclick="window.print()">${label}</button>
+        <button class="secondary" onclick="history.back()">Back</button>
+        ${matchingTitleEditor}
+      </div>
       ${pictureMarkup}${matchingMarkup}
     </div>`;
 }
@@ -3059,19 +3111,6 @@ function renderControl() {
       </div>
 
       <div style="max-width:850px;margin:24px auto 8px;text-align:left;color:#f5c542;font-weight:900;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;">🖨 Handouts</div>
-
-      <div class="handout-title-editor">
-        <label for="matchingHandoutTitleInput">Matching handout subtitle</label>
-        <input
-          id="matchingHandoutTitleInput"
-          value="${escapeHtml(getMatchingHandoutTitle())}"
-          oninput="setMatchingHandoutTitle(this.value)"
-          placeholder="Example: Match the Word to Its Meaning"
-        >
-        <div class="handout-title-preview">
-          MATCHING MAYHEM • <span id="matchingHandoutTitlePreview">${escapeHtml(getMatchingHandoutTitle())}</span>
-        </div>
-      </div>
 
       <div class="control-row">
         <button onclick="openHandout('picture')" class="control-button-medium">🖼 Picture Round</button>
