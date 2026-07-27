@@ -1336,13 +1336,17 @@ function buildSlidesFromRounds(rounds) {
   }
 
   function isMatchingRound(round) {
-    return Boolean(
-      round &&
-      round.questions.length &&
-      round.questions.every(
-        q => isMatchingQuestionType(q.type)
-      )
+    if (!round || !round.questions.length) return false;
+
+    const roundTitleLooksMatching =
+      normalizeQuestionType(round.title).includes("matching") ||
+      normalizeQuestionType(round.title).includes("match");
+
+    const everyRowIsMatchingType = round.questions.every(
+      q => isMatchingQuestionType(q.type)
     );
+
+    return roundTitleLooksMatching || everyRowIsMatchingType;
   }
 
   function getMatchingOptions(round) {
@@ -2318,7 +2322,7 @@ function renderPrintPage(mode = "all") {
       ? "Loading printable rounds from the spreadsheet…"
       : questionsLoadState === "error"
         ? `Could not load the spreadsheet. ${escapeHtml(questionsLoadError || "Check the browser console and published-sheet access.")}`
-        : "No printable rounds were recognized. Matching accepts: matching, match, matchingRound, or matchRound. Picture rounds accept: imageRound, pictureRound, picture, or image.";
+        : "No printable rounds were recognized. A matching round is recognized when the Round title contains Matching or Match, even when Type is question. Picture rounds still use Type imageRound, pictureRound, picture, or image.";
 
     return `
       <div class="print-page">
