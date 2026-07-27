@@ -1399,14 +1399,29 @@ body.tv-mode {
     const isHost = params.get("view") === "host";
 
     const MATCHING_HANDOUT_TITLE_KEY = "bgosMatchingHandoutTitle";
+    let matchingHandoutTitleFallback = "Match the Items";
 
     function getMatchingHandoutTitle() {
-      return (localStorage.getItem(MATCHING_HANDOUT_TITLE_KEY) || "").trim()
-        || "Match the Items";
+      try {
+        const saved = localStorage.getItem(MATCHING_HANDOUT_TITLE_KEY);
+        if (saved && saved.trim()) return saved.trim();
+      } catch (error) {
+        // Some browsers block localStorage when an HTML file is opened directly.
+        console.warn("Matching title storage is unavailable; using this-session fallback.", error);
+      }
+      return matchingHandoutTitleFallback;
     }
 
     function setMatchingHandoutTitle(value) {
-      localStorage.setItem(MATCHING_HANDOUT_TITLE_KEY, String(value || "").trim());
+      const cleaned = String(value || "").trim();
+      matchingHandoutTitleFallback = cleaned || "Match the Items";
+
+      try {
+        localStorage.setItem(MATCHING_HANDOUT_TITLE_KEY, cleaned);
+      } catch (error) {
+        console.warn("Could not save matching title in localStorage.", error);
+      }
+
       const preview = document.getElementById("matchingHandoutTitlePreview");
       if (preview) preview.textContent = getMatchingHandoutTitle();
     }
