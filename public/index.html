@@ -982,6 +982,103 @@ body.tv-mode {
 }
 
 
+/* Matching round display and printable handout */
+.stage-matching-layout {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, .8fr);
+  gap: 26px;
+  min-height: 0;
+}
+.stage-matching-column { min-width: 0; }
+.stage-matching-heading {
+  color: var(--accent);
+  font-family: "Bree Serif", Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.stage-matching-list { display:flex; flex-direction:column; gap:10px; }
+.stage-matching-item {
+  display:grid;
+  grid-template-columns: 48px minmax(0,1fr);
+  gap:10px;
+  color:#fff;
+  font-size:clamp(1.35rem,2.2vw,2.15rem);
+  line-height:1.12;
+}
+.stage-matching-label { color:var(--accent); font-weight:1000; text-align:right; }
+.stage-matching-options {
+  padding-left:22px;
+  border-left:2px solid rgba(245,197,66,.45);
+}
+.print-matching-sheet {
+  width:13.5in;
+  height:8in;
+  margin:0 auto;
+  display:grid;
+  grid-template-rows:auto 1fr;
+  gap:.12in;
+  page-break-after:always;
+  break-after:page;
+}
+.print-matching-body {
+  min-height:0;
+  display:grid;
+  grid-template-columns:1.35fr .85fr;
+  gap:.18in;
+}
+.print-matching-panel { border:1.5px solid #000; padding:.12in .16in; min-height:0; }
+.print-matching-header-right { display:flex; align-items:flex-end; gap:.2in; }
+.print-matching-theme { width:.72in; height:.72in; object-fit:contain; }
+.print-matching-heading {
+  font-family:"Bree Serif",Georgia,serif;
+  font-size:17pt;
+  font-weight:900;
+  border-bottom:1px solid #000;
+  padding-bottom:.05in;
+  margin-bottom:.08in;
+}
+.print-matching-list { display:flex; flex-direction:column; gap:.075in; }
+.print-matching-question {
+  display:grid;
+  grid-template-columns:.28in .65in 1fr;
+  gap:.06in;
+  align-items:baseline;
+  font-size:12.5pt;
+  line-height:1.12;
+}
+.print-matching-blank { border-bottom:1.5px solid #000; height:.16in; }
+.print-matching-option {
+  display:grid;
+  grid-template-columns:.28in 1fr;
+  gap:.07in;
+  font-size:12.5pt;
+  line-height:1.12;
+}
+.tv-activity-pulse {
+  position:fixed;
+  width:2px;
+  height:2px;
+  right:1px;
+  bottom:1px;
+  opacity:.01;
+  pointer-events:none;
+  z-index:-1;
+  animation:bgosPulse 8s linear infinite;
+}
+@keyframes bgosPulse {
+  0% { transform:translate(0,0); }
+  25% { transform:translate(-1px,0); }
+  50% { transform:translate(-1px,-1px); }
+  75% { transform:translate(0,-1px); }
+  100% { transform:translate(0,0); }
+}
+@media (max-width:1000px) {
+  .stage-matching-layout { grid-template-columns:1fr; }
+  .stage-matching-options { padding-left:0; border-left:0; border-top:2px solid rgba(245,197,66,.45); padding-top:18px; }
+}
+
 /* Printable picture round page */
 .print-page {
   background: #fff;
@@ -1112,11 +1209,18 @@ body.tv-mode {
     padding: 0 !important;
   }
 
-  .print-sheet {
+  .print-sheet,
+  .print-matching-sheet {
     width: 13.5in;
     height: 8in;
     margin: 0;
     page-break-after: always;
+    break-after: page;
+  }
+  .print-sheet:last-child,
+  .print-matching-sheet:last-child {
+    page-break-after: auto;
+    break-after: auto;
   }
 }
 
@@ -1132,7 +1236,11 @@ body.tv-mode {
     const isFinal = params.get("view") === "final";
     const isShow = params.get("view") === "show";
 const isControl = params.get("view") === "control";
-const isPrint = params.get("view") === "print";
+const printView = params.get("view");
+const isPrintPicture = printView === "print-picture";
+const isPrintMatching = printView === "print-matching";
+const isPrintAll = printView === "print-all" || printView === "print";
+const isPrint = isPrintPicture || isPrintMatching || isPrintAll;
 const isTvMode = params.get("tv") === "1";
    let ROUND_COUNT = 7;
 
@@ -1206,6 +1314,23 @@ function buildSlidesFromRounds(rounds) {
     );
   }
 
+  function isMatchingRound(round) {
+    return Boolean(
+      round &&
+      round.questions.length &&
+      round.questions.every(
+        q => String(q.type || "").trim().toLowerCase() === "matching"
+      )
+    );
+  }
+
+  function getMatchingOptions(round) {
+    return round.questions
+      .map(item => String(item.answer || "").trim())
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+  }
+
   function addRoundTitle(roundNumber, titleOverride = "") {
     const round = getRound(roundNumber);
     if (!round) return;
@@ -1222,6 +1347,21 @@ function buildSlidesFromRounds(rounds) {
     if (!round) return;
 
     addRoundTitle(roundNumber, options.titleOverride || "");
+
+    if (isMatchingRound(round)) {
+      generatedSlides.push({
+        type: "matchingQuestion",
+        round: round.round,
+        roundTitle: round.title,
+        questions: round.questions.map((item, index) => ({
+          number: index + 1,
+          question: item.question,
+          answer: item.answer
+        })),
+        options: getMatchingOptions(round)
+      });
+      return;
+    }
 
     if (options.titleOnly) return;
 
@@ -2131,65 +2271,90 @@ function getPrintableImages() {
   })));
 }
 
-function renderPrintPage() {
-  const images = getPrintableImages();
+function getPrintableMatchingRounds() {
+  const matchingSlides = slides.filter(slide => slide.type === "matchingQuestion");
+  const seen = new Set();
+  return matchingSlides.filter(slide => {
+    const key = String(slide.round);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
-  if (!images.length) {
+function renderPrintPage(mode = "all") {
+  const includePictures = mode === "all" || mode === "picture";
+  const includeMatching = mode === "all" || mode === "matching";
+  const images = includePictures ? getPrintableImages() : [];
+  const matchingRounds = includeMatching ? getPrintableMatchingRounds() : [];
+  const picturePages = chunkArray(images, 10);
+  const optionLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  if (!picturePages.length && !matchingRounds.length) {
     return `
       <div class="print-page">
-        <div class="print-toolbar">
-          <button onclick="window.print()">Print</button>
-        </div>
+        <div class="print-toolbar"><button onclick="window.print()">Print</button></div>
         <div style="text-align:center;padding:40px;font-size:24px;color:#000;">
-          No picture-round images found. Make sure the spreadsheet Type column says imageRound.
+          No printable rounds found. Use Type imageRound or matching in the spreadsheet.
         </div>
-      </div>
-    `;
+      </div>`;
   }
 
-  const pages = chunkArray(images, 10);
+  const pictureMarkup = picturePages.map(pageImages => {
+    const filled = [...pageImages];
+    while (filled.length < 10) filled.push(null);
+    const pageTitle = pageImages[0]?.roundTitle || "Picture Round";
+    return `
+      <div class="print-sheet">
+        <div class="print-sheet-header">
+          <div class="print-sheet-title">${escapeHtml(pageTitle)}</div>
+          <div class="print-team-name">Team Name:<span class="print-team-line"></span></div>
+        </div>
+        <div class="print-picture-grid">
+          ${filled.map(img => img ? `
+            <div class="print-picture-card">
+              <div class="print-picture-box"><img src="/images/${escapeHtml(img.media)}" alt="Picture ${escapeHtml(img.number)}"></div>
+              <div class="print-answer-line">${escapeHtml(img.number)} ____________________</div>
+            </div>` : `<div class="print-picture-card print-empty-card"></div>`).join("")}
+        </div>
+      </div>`;
+  }).join("");
 
+  const matchingMarkup = matchingRounds.map(round => `
+    <div class="print-matching-sheet">
+      <div class="print-sheet-header">
+        <div class="print-sheet-title">${escapeHtml(round.roundTitle)}</div>
+        <div class="print-matching-header-right">
+          <img class="print-matching-theme" src="/theme-current.png" alt="Theme">
+          <div class="print-team-name">Team Name:<span class="print-team-line"></span></div>
+        </div>
+      </div>
+      <div class="print-matching-body">
+        <section class="print-matching-panel">
+          <div class="print-matching-heading">Match each item</div>
+          <div class="print-matching-list">
+            ${round.questions.map(item => `
+              <div class="print-matching-question">
+                <strong>${escapeHtml(item.number)}.</strong><span class="print-matching-blank"></span><span>${escapeHtml(item.question)}</span>
+              </div>`).join("")}
+          </div>
+        </section>
+        <section class="print-matching-panel">
+          <div class="print-matching-heading">Options</div>
+          <div class="print-matching-list">
+            ${round.options.map((option,index) => `
+              <div class="print-matching-option"><strong>${escapeHtml(optionLetters[index] || String(index+1))}.</strong><span>${escapeHtml(option)}</span></div>`).join("")}
+          </div>
+        </section>
+      </div>
+    </div>`).join("");
+
+  const label = mode === "picture" ? "Print Picture Round" : mode === "matching" ? "Print Matching Round" : "Print All Handouts";
   return `
     <div class="print-page">
-      <div class="print-toolbar">
-        <button onclick="window.print()">Print Picture Round</button>
-        <button class="secondary" onclick="history.back()">Back</button>
-      </div>
-
-      ${pages.map(pageImages => {
-        const filled = [...pageImages];
-        while (filled.length < 10) filled.push(null);
-
-        const pageTitle = "Artist Pictograms, What musical artist are we describing?";
-
-        return `
-          <div class="print-sheet">
-            <div class="print-sheet-header">
-              <div class="print-sheet-title">${escapeHtml(pageTitle)}</div>
-              <div class="print-team-name">
-                Team Name:<span class="print-team-line"></span>
-              </div>
-            </div>
-
-            <div class="print-picture-grid">
-              ${filled.map((img, index) => {
-                if (!img) return `<div class="print-picture-card print-empty-card"></div>`;
-
-                return `
-                  <div class="print-picture-card">
-                    <div class="print-picture-box">
-                      <img src="/images/${escapeHtml(img.media)}" alt="Picture ${escapeHtml(img.number)}">
-                    </div>
-                    <div class="print-answer-line">${escapeHtml(img.number)} ____________________</div>
-                  </div>
-                `;
-              }).join("")}
-            </div>
-          </div>
-        `;
-      }).join("")}
-    </div>
-  `;
+      <div class="print-toolbar"><button onclick="window.print()">${label}</button><button class="secondary" onclick="history.back()">Back</button></div>
+      ${pictureMarkup}${matchingMarkup}
+    </div>`;
 }
 
 function renderTitleSlide(currentSlide) {
@@ -2243,6 +2408,26 @@ function renderQuestionListSlide(currentSlide) {
     title: currentSlide.roundTitle,
     content
   });
+}
+
+function renderMatchingQuestionSlide(currentSlide) {
+  const optionLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const content = `
+    <div class="stage-matching-layout stage-running-matching">
+      <section class="stage-matching-column">
+        <div class="stage-matching-heading">Match each item</div>
+        <div class="stage-matching-list">
+          ${currentSlide.questions.map(item => `<div class="stage-matching-item"><div class="stage-matching-label">${escapeHtml(item.number)}.</div><div>${escapeHtml(item.question)}</div></div>`).join("")}
+        </div>
+      </section>
+      <section class="stage-matching-column stage-matching-options">
+        <div class="stage-matching-heading">Options</div>
+        <div class="stage-matching-list">
+          ${currentSlide.options.map((option,index) => `<div class="stage-matching-item"><div class="stage-matching-label">${escapeHtml(optionLetters[index] || String(index+1))}.</div><div>${escapeHtml(option)}</div></div>`).join("")}
+        </div>
+      </section>
+    </div>`;
+  return renderStageShell({ round:currentSlide.round, title:currentSlide.roundTitle, content });
 }
 
 function renderImageRoundSlide(currentSlide) {
@@ -2333,6 +2518,7 @@ const slideRenderers = {
   title: renderTitleSlide,
   questionHero: renderQuestionHeroSlide,
   questionList: renderQuestionListSlide,
+  matchingQuestion: renderMatchingQuestionSlide,
   imageRound: renderImageRoundSlide,
   imageAnswerReveal: renderImageAnswerRevealSlide,
   answerQuestion: renderAnswerQuestionSlide,
@@ -2561,6 +2747,13 @@ function renderControl() {
 <button onclick="validateGame()" class="control-button-medium">🔍 Validate Game</button>
       </div>
 
+      <div style="max-width:850px;margin:24px auto 8px;text-align:left;color:#f5c542;font-weight:900;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;">🖨 Handouts</div>
+      <div class="control-row">
+        <button onclick="openHandout('picture')" class="control-button-medium">🖼 Picture Round</button>
+        <button onclick="openHandout('matching')" class="control-button-medium">🔗 Matching Round</button>
+        <button onclick="openHandout('all')" class="control-button-medium">📄 All Handouts</button>
+      </div>
+
       <div class="control-row">
         <button onclick="setDisplayMode('presentation')" class="control-button-medium">🎮 Game</button>
         <button onclick="setDisplayMode('scores')" class="control-button-medium">📊 Scores</button>
@@ -2601,6 +2794,13 @@ function renderControl() {
 function openPresentationMode() {
   const url = `${window.location.origin}${window.location.pathname}?view=show&tv=1`;
   window.open(url, "bgosPresentation", "popup=yes,width=1600,height=900");
+}
+
+function openHandout(kind) {
+  const allowed = new Set(["picture", "matching", "all"]);
+  const safeKind = allowed.has(kind) ? kind : "all";
+  const url = `${window.location.origin}${window.location.pathname}?view=print-${safeKind}`;
+  window.open(url, `bgosPrint${safeKind}`, "popup=yes,width=1400,height=900");
 }
 
 function toggleFullscreen() {
@@ -2784,6 +2984,37 @@ function validateGame(){
 }
 
 
+let bgosWakeLock = null;
+async function requestBgosWakeLock() {
+  if (!(isShow || isTvMode) || !document.hasFocus() || document.visibilityState !== "visible") return;
+  if (!("wakeLock" in navigator)) return;
+  try {
+    bgosWakeLock = await navigator.wakeLock.request("screen");
+    bgosWakeLock.addEventListener("release", () => { bgosWakeLock = null; });
+  } catch (error) {
+    console.info("BGOS wake lock unavailable:", error?.message || error);
+  }
+}
+function installTvActivityPulse() {
+  if (!(isShow || isTvMode)) return;
+  if (!document.querySelector(".tv-activity-pulse")) {
+    const pulse = document.createElement("div");
+    pulse.className = "tv-activity-pulse";
+    pulse.setAttribute("aria-hidden", "true");
+    document.body.appendChild(pulse);
+  }
+  requestBgosWakeLock();
+  setInterval(() => {
+    const pulse = document.querySelector(".tv-activity-pulse");
+    if (pulse) pulse.style.opacity = pulse.style.opacity === "0.012" ? "0.01" : "0.012";
+    requestBgosWakeLock();
+  }, 20000);
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") requestBgosWakeLock();
+});
+window.addEventListener("focus", requestBgosWakeLock);
+
 function render() {
   const app = document.getElementById("app");
 
@@ -2795,8 +3026,12 @@ function render() {
     app.innerHTML = renderShow();
   } else if (isControl) {
     app.innerHTML = renderControl();
-  } else if (isPrint) {
-    app.innerHTML = renderPrintPage();
+  } else if (isPrintPicture) {
+    app.innerHTML = renderPrintPage("picture");
+  } else if (isPrintMatching) {
+    app.innerHTML = renderPrintPage("matching");
+  } else if (isPrintAll) {
+    app.innerHTML = renderPrintPage("all");
   } else {
     app.innerHTML = renderDisplay();
   }
@@ -2934,6 +3169,7 @@ applyGameState(gameState);
 
 loadQuestions();
 if (isTvMode) document.body.classList.add("tv-mode");
+installTvActivityPulse();
 
 document.addEventListener("keydown", (event) => {
   if ((event.key === "f" || event.key === "F") && (isShow || isControl)) {
@@ -2996,6 +3232,7 @@ document.addEventListener("touchend", (e) => {
     window.moveToNextScore = moveToNextScore;
     window.startGame = startGame;
     window.openPresentationMode = openPresentationMode;
+    window.openHandout = openHandout;
     window.toggleFullscreen = toggleFullscreen;
     window.jumpToQuestions = jumpToQuestions;
     window.jumpToAnswers = jumpToAnswers;
