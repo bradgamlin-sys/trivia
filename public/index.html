@@ -1017,45 +1017,209 @@ body.tv-mode {
   height:8in;
   margin:0 auto;
   display:grid;
-  grid-template-rows:auto 1fr;
-  gap:.12in;
+  grid-template-rows:.94in 1fr .34in;
+  background:#fffdf6;
+  color:#111;
+  border:3px solid #111;
+  box-shadow:0 0 0 7px #f5c542 inset;
   page-break-after:always;
   break-after:page;
+  overflow:hidden;
+}
+.print-matching-banner {
+  display:grid;
+  grid-template-columns:.72in 1fr 3.05in;
+  align-items:center;
+  gap:.18in;
+  padding:.12in .22in;
+  color:#fff;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(245,197,66,.24), transparent 28%),
+    linear-gradient(100deg,#090909 0%,#262626 52%,#090909 100%);
+  border-bottom:4px solid #f5c542;
+}
+.print-matching-theme {
+  width:.62in;
+  height:.62in;
+  object-fit:cover;
+  border-radius:10px;
+  border:3px solid #fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.45);
+  background:#fff;
+}
+.print-matching-title-wrap { min-width:0; }
+.print-matching-brand {
+  color:#f5c542;
+  font-family:"Bree Serif",Georgia,serif;
+  font-size:22pt;
+  line-height:.95;
+  font-weight:900;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+}
+.print-matching-subtitle {
+  margin-top:.045in;
+  font-size:12.5pt;
+  line-height:1.05;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.print-matching-round-label {
+  margin-top:.03in;
+  color:#d7d7d7;
+  font-size:8.5pt;
+  font-weight:900;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+}
+.print-matching-team {
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:.08in;
+  align-items:end;
+  font-size:11.5pt;
+  font-weight:900;
+  white-space:nowrap;
+}
+.print-matching-team-line {
+  height:.22in;
+  border-bottom:2px solid #fff;
 }
 .print-matching-body {
   min-height:0;
   display:grid;
-  grid-template-columns:1.35fr .85fr;
-  gap:.18in;
+  grid-template-columns:1.44fr .86fr;
+  gap:.16in;
+  padding:.16in .18in .12in;
 }
-.print-matching-panel { border:1.5px solid #000; padding:.12in .16in; min-height:0; }
-.print-matching-header-right { display:flex; align-items:flex-end; gap:.2in; }
-.print-matching-theme { width:.72in; height:.72in; object-fit:contain; }
-.print-matching-heading {
+.print-matching-panel {
+  min-height:0;
+  border:2px solid #111;
+  border-radius:12px;
+  background:#fff;
+  overflow:hidden;
+  padding:0;
+}
+.print-matching-panel-title {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:.1in;
+  padding:.075in .14in;
+  background:#f5c542;
+  color:#111;
+  border-bottom:2px solid #111;
   font-family:"Bree Serif",Georgia,serif;
-  font-size:17pt;
+  font-size:15.5pt;
   font-weight:900;
-  border-bottom:1px solid #000;
-  padding-bottom:.05in;
-  margin-bottom:.08in;
+  text-transform:uppercase;
+  letter-spacing:.4px;
 }
-.print-matching-list { display:flex; flex-direction:column; gap:.075in; }
+.print-matching-panel-note {
+  font-family:"Montserrat",Arial,sans-serif;
+  font-size:8.2pt;
+  font-weight:850;
+  text-transform:none;
+  letter-spacing:0;
+}
+.print-matching-list {
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  padding:.04in .08in .06in;
+}
 .print-matching-question {
   display:grid;
-  grid-template-columns:.28in .65in 1fr;
-  gap:.06in;
-  align-items:baseline;
-  font-size:12.5pt;
-  line-height:1.12;
+  grid-template-columns:.28in .58in 1fr;
+  gap:.065in;
+  align-items:center;
+  min-height:.43in;
+  padding:.04in .06in;
+  font-size:11.3pt;
+  line-height:1.08;
+  border-bottom:1px solid #d5d5d5;
 }
-.print-matching-blank { border-bottom:1.5px solid #000; height:.16in; }
 .print-matching-option {
   display:grid;
-  grid-template-columns:.28in 1fr;
-  gap:.07in;
-  font-size:12.5pt;
-  line-height:1.12;
+  grid-template-columns:.31in 1fr;
+  gap:.08in;
+  align-items:center;
+  min-height:.39in;
+  padding:.04in .08in;
+  font-size:11.2pt;
+  line-height:1.08;
+  border-bottom:1px solid #d5d5d5;
 }
+.print-matching-question:nth-child(even),
+.print-matching-option:nth-child(even) { background:#faf4da; }
+.print-matching-question:last-child,
+.print-matching-option:last-child { border-bottom:none; }
+.print-matching-number,
+.print-matching-letter {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:.25in;
+  height:.25in;
+  border-radius:50%;
+  background:#111;
+  color:#fff;
+  font-weight:900;
+  font-size:9.5pt;
+}
+.print-matching-blank {
+  height:.24in;
+  border:2px solid #111;
+  border-radius:5px;
+  background:#fff;
+}
+.print-matching-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 .2in;
+  background:#111;
+  color:#fff;
+  border-top:3px solid #f5c542;
+  font-size:8.3pt;
+  font-weight:850;
+  letter-spacing:.35px;
+}
+.print-matching-footer strong { color:#f5c542; }
+
+.handout-title-editor {
+  max-width:850px;
+  margin:10px auto 14px;
+  padding:14px;
+  border:1px solid rgba(245,197,66,.5);
+  border-radius:12px;
+  background:rgba(255,255,255,.055);
+  text-align:left;
+}
+.handout-title-editor label {
+  display:block;
+  color:#fff;
+  font-weight:900;
+  margin-bottom:8px;
+}
+.handout-title-editor input {
+  width:100%;
+  padding:11px 13px;
+  border:2px solid #f5c542;
+  border-radius:8px;
+  background:#111;
+  color:#fff;
+  font:800 1rem "Montserrat",Arial,sans-serif;
+}
+.handout-title-preview {
+  margin-top:9px;
+  color:#f5c542;
+  font-family:"Bree Serif",Georgia,serif;
+  font-size:1.15rem;
+}
+
 .tv-activity-pulse {
   position:fixed;
   width:2px;
@@ -1233,6 +1397,19 @@ body.tv-mode {
     const socket = io();
     const params = new URLSearchParams(window.location.search);
     const isHost = params.get("view") === "host";
+
+    const MATCHING_HANDOUT_TITLE_KEY = "bgosMatchingHandoutTitle";
+
+    function getMatchingHandoutTitle() {
+      return (localStorage.getItem(MATCHING_HANDOUT_TITLE_KEY) || "").trim()
+        || "Match the Items";
+    }
+
+    function setMatchingHandoutTitle(value) {
+      localStorage.setItem(MATCHING_HANDOUT_TITLE_KEY, String(value || "").trim());
+      const preview = document.getElementById("matchingHandoutTitlePreview");
+      if (preview) preview.textContent = getMatchingHandoutTitle();
+    }
     const isFinal = params.get("view") === "final";
     const isShow = params.get("view") === "show";
 const isControl = params.get("view") === "control";
@@ -2410,33 +2587,62 @@ function renderPrintPage(mode = "all") {
       </div>`;
   }).join("");
 
+  const matchingHandoutTitle = getMatchingHandoutTitle();
   const matchingMarkup = matchingRounds.map(round => `
     <div class="print-matching-sheet">
-      <div class="print-sheet-header">
-        <div class="print-sheet-title">${escapeHtml(round.roundTitle)}</div>
-        <div class="print-matching-header-right">
-          <img class="print-matching-theme" src="/theme-current.png" alt="Theme">
-          <div class="print-team-name">Team Name:<span class="print-team-line"></span></div>
+      <header class="print-matching-banner">
+        <img
+          class="print-matching-theme"
+          src="/theme-current.png"
+          alt="This week's theme"
+          onerror="this.style.visibility='hidden'"
+        >
+        <div class="print-matching-title-wrap">
+          <div class="print-matching-brand">Matching Mayhem</div>
+          <div class="print-matching-subtitle">${escapeHtml(matchingHandoutTitle)}</div>
+          <div class="print-matching-round-label">Bald Guy Trivia • Round ${escapeHtml(round.round)}</div>
         </div>
-      </div>
+        <div class="print-matching-team">
+          <span>Team Name</span>
+          <span class="print-matching-team-line"></span>
+        </div>
+      </header>
+
       <div class="print-matching-body">
         <section class="print-matching-panel">
-          <div class="print-matching-heading">Match each item</div>
+          <div class="print-matching-panel-title">
+            <span>Clues</span>
+            <span class="print-matching-panel-note">Write the matching letter in each box</span>
+          </div>
           <div class="print-matching-list">
             ${round.questions.map(item => `
               <div class="print-matching-question">
-                <strong>${escapeHtml(item.number)}.</strong><span class="print-matching-blank"></span><span>${escapeHtml(item.question)}</span>
+                <span class="print-matching-number">${escapeHtml(item.number)}</span>
+                <span class="print-matching-blank"></span>
+                <span>${escapeHtml(item.question)}</span>
               </div>`).join("")}
           </div>
         </section>
+
         <section class="print-matching-panel">
-          <div class="print-matching-heading">Options</div>
+          <div class="print-matching-panel-title">
+            <span>Answer Bank</span>
+            <span class="print-matching-panel-note">${escapeHtml(round.options.length)} choices</span>
+          </div>
           <div class="print-matching-list">
             ${round.options.map((option,index) => `
-              <div class="print-matching-option"><strong>${escapeHtml(optionLetters[index] || String(index+1))}.</strong><span>${escapeHtml(option)}</span></div>`).join("")}
+              <div class="print-matching-option">
+                <span class="print-matching-letter">${escapeHtml(optionLetters[index] || String(index+1))}</span>
+                <span>${escapeHtml(option)}</span>
+              </div>`).join("")}
           </div>
         </section>
       </div>
+
+      <footer class="print-matching-footer">
+        <span><strong>BGOS</strong> Matching Round</span>
+        <span>No phones. No shouting answers. Tiny pencils, enormous confidence.</span>
+      </footer>
     </div>`).join("");
 
   const label = mode === "picture" ? "Print Picture Round" : mode === "matching" ? "Print Matching Round" : "Print All Handouts";
@@ -2838,6 +3044,20 @@ function renderControl() {
       </div>
 
       <div style="max-width:850px;margin:24px auto 8px;text-align:left;color:#f5c542;font-weight:900;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;">🖨 Handouts</div>
+
+      <div class="handout-title-editor">
+        <label for="matchingHandoutTitleInput">Matching handout subtitle</label>
+        <input
+          id="matchingHandoutTitleInput"
+          value="${escapeHtml(getMatchingHandoutTitle())}"
+          oninput="setMatchingHandoutTitle(this.value)"
+          placeholder="Example: Match the Word to Its Meaning"
+        >
+        <div class="handout-title-preview">
+          MATCHING MAYHEM • <span id="matchingHandoutTitlePreview">${escapeHtml(getMatchingHandoutTitle())}</span>
+        </div>
+      </div>
+
       <div class="control-row">
         <button onclick="openHandout('picture')" class="control-button-medium">🖼 Picture Round</button>
         <button onclick="openHandout('matching')" class="control-button-medium">🔗 Matching Round</button>
