@@ -1261,7 +1261,7 @@ body.tv-mode {
   opacity:.01;
   pointer-events:none;
   z-index:-1;
-  animation:bgosPulse 8s linear infinite;
+  animation:bgosPulse 4s linear infinite;
 }
 @keyframes bgosPulse {
   0% { transform:translate(0,0); }
@@ -3348,35 +3348,111 @@ function validateGame(){
 
 
 let bgosWakeLock = null;
+let bgosWakeRetryTimer = null;
+let bgosWakePulseTick = 0;
+
+function bgosShouldKeepAwake() {
+  return isShow || isTvMode;
+}
+
+function nudgeBgosDisplayActivity() {
+  if (!bgosShouldKeepAwake()) return;
+
+  bgosWakePulseTick += 1;
+
+  const pulse = document.querySelector(".tv-activity-pulse");
+  if (pulse) {
+    const x = bgosWakePulseTick % 2;
+    const y = Math.floor(bgosWakePulseTick / 2) % 2;
+    pulse.style.transform = `translate(${-x}px, ${-y}px)`;
+    pulse.style.opacity = bgosWakePulseTick % 2 ? "0.012" : "0.01";
+  }
+
+  // Force a harmless repaint without changing anything the audience can see.
+  document.documentElement.style.setProperty(
+    "--bgos-activity-tick",
+    String(bgosWakePulseTick % 1000)
+  );
+}
+
+function scheduleBgosWakeRetry(delay = 1500) {
+  if (!bgosShouldKeepAwake()) return;
+  clearTimeout(bgosWakeRetryTimer);
+  bgosWakeRetryTimer = setTimeout(() => {
+    requestBgosWakeLock();
+  }, delay);
+}
+
 async function requestBgosWakeLock() {
-  if (!(isShow || isTvMode) || !document.hasFocus() || document.visibilityState !== "visible") return;
-  if (!("wakeLock" in navigator)) return;
+  if (!bgosShouldKeepAwake()) return false;
+  if (document.visibilityState !== "visible") return false;
+
+  // Do not request a second lock while the first one is still active.
+  if (bgosWakeLock && !bgosWakeLock.released) return true;
+
+  if (!("wakeLock" in navigator)) {
+    nudgeBgosDisplayActivity();
+    return false;
+  }
+
   try {
     bgosWakeLock = await navigator.wakeLock.request("screen");
-    bgosWakeLock.addEventListener("release", () => { bgosWakeLock = null; });
+
+    bgosWakeLock.addEventListener("release", () => {
+      bgosWakeLock = null;
+
+      // Browsers can release the lock after visibility/power-state changes.
+      if (document.visibilityState === "visible") {
+        scheduleBgosWakeRetry(750);
+      }
+    }, { once: true });
+
+    return true;
   } catch (error) {
+    bgosWakeLock = null;
     console.info("BGOS wake lock unavailable:", error?.message || error);
+    nudgeBgosDisplayActivity();
+    scheduleBgosWakeRetry(5000);
+    return false;
   }
 }
+
+function reinforceBgosKeepAwake() {
+  if (!bgosShouldKeepAwake()) return;
+  nudgeBgosDisplayActivity();
+  requestBgosWakeLock();
+}
+
 function installTvActivityPulse() {
-  if (!(isShow || isTvMode)) return;
+  if (!bgosShouldKeepAwake()) return;
+
   if (!document.querySelector(".tv-activity-pulse")) {
     const pulse = document.createElement("div");
     pulse.className = "tv-activity-pulse";
     pulse.setAttribute("aria-hidden", "true");
     document.body.appendChild(pulse);
   }
-  requestBgosWakeLock();
-  setInterval(() => {
-    const pulse = document.querySelector(".tv-activity-pulse");
-    if (pulse) pulse.style.opacity = pulse.style.opacity === "0.012" ? "0.01" : "0.012";
-    requestBgosWakeLock();
-  }, 20000);
+
+  reinforceBgosKeepAwake();
+
+  // Keep a quiet browser-side heartbeat running for TV browsers that do not
+  // implement Screen Wake Lock. This does not reload or alter the show.
+  setInterval(reinforceBgosKeepAwake, 12000);
+
+  // A real user gesture gives browsers another opportunity to grant wake lock.
+  ["pointerdown", "click", "touchstart", "keydown"].forEach(eventName => {
+    document.addEventListener(eventName, reinforceBgosKeepAwake, { passive: true });
+  });
 }
+
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") requestBgosWakeLock();
+  if (document.visibilityState === "visible") {
+    setTimeout(reinforceBgosKeepAwake, 100);
+  }
 });
-window.addEventListener("focus", requestBgosWakeLock);
+
+window.addEventListener("focus", reinforceBgosKeepAwake);
+window.addEventListener("pageshow", reinforceBgosKeepAwake);
 
 function render() {
   const app = document.getElementById("app");
@@ -3401,6 +3477,11 @@ function render() {
   scheduleTextFitting();
   const lbl=document.getElementById('nextActionLabel');
   if(lbl) lbl.textContent=getNextActionLabel();
+
+  // Slide changes count as active presentation time. Reassert the wake request.
+  if (typeof reinforceBgosKeepAwake === "function") {
+    reinforceBgosKeepAwake();
+  }
 }
 
 function runTextFitting() {
