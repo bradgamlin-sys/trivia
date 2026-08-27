@@ -1793,20 +1793,32 @@ function fitQuestionList() {
     const listTop = list.getBoundingClientRect().top;
     const boardBottom = board.getBoundingClientRect().bottom;
     const availableHeight = Math.max(
-      0,
-      boardBottom - bottomPadding - listTop - 6
+      80,
+      boardBottom - bottomPadding - listTop - 10
     );
 
-    let size = 2.45;
-    const minimumSize = 1.9;
+    // Start at the normal large list size and only shrink when the full stack
+    // would run off the bottom of the board.
+    let low = 1.05;
+    let high = 2.45;
+    let best = low;
 
-    list.style.fontSize = `${size}rem`;
-    list.style.lineHeight = "1.1";
+    list.style.lineHeight = "1.06";
 
-    while (list.scrollHeight > availableHeight && size > minimumSize) {
-      size -= 0.025;
-      list.style.fontSize = `${size}rem`;
+    for (let i = 0; i < 18; i++) {
+      const mid = (low + high) / 2;
+      list.style.fontSize = `${mid}rem`;
+
+      if (list.scrollHeight <= availableHeight) {
+        best = mid;
+        low = mid;
+      } else {
+        high = mid;
+      }
     }
+
+    // Tiny cushion for browser/font rounding on TVs.
+    list.style.fontSize = `${Math.max(1.05, best - 0.02)}rem`;
   });
 }
 
@@ -3293,16 +3305,12 @@ function fitQuestionText() {
     const boardBottom = board.getBoundingClientRect().bottom;
     const containerTop = container.getBoundingClientRect().top;
 
-    // Fit only into the space that actually remains beneath the Question/Answer kicker.
-    // The extra cushion keeps descenders and the final line off the gold border.
     const availableHeight = Math.max(
-      80,
+      100,
       boardBottom - bottomPadding - containerTop - 18
     );
 
-    const availableWidth = Math.max(80, container.clientWidth - 8);
-
-    let low = 1.35;
+    let low = 1.45;
     let high = 5.4;
     let best = low;
 
@@ -3310,10 +3318,9 @@ function fitQuestionText() {
       const mid = (low + high) / 2;
       container.style.fontSize = `${mid}rem`;
 
-      const fitsHeight = container.scrollHeight <= availableHeight;
-      const fitsWidth = container.scrollWidth <= availableWidth;
-
-      if (fitsHeight && fitsWidth) {
+      // Width is governed by normal text wrapping. Only vertical overflow
+      // should make a question smaller.
+      if (container.scrollHeight <= availableHeight) {
         best = mid;
         low = mid;
       } else {
@@ -3321,8 +3328,7 @@ function fitQuestionText() {
       }
     }
 
-    // Small safety step prevents bottom clipping from font rounding on TVs.
-    container.style.fontSize = `${Math.max(1.35, best - 0.06)}rem`;
+    container.style.fontSize = `${Math.max(1.45, best - 0.03)}rem`;
   });
 }
 
