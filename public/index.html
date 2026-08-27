@@ -1079,14 +1079,18 @@ body.tv-mode {
   display:grid;
   grid-template-columns:auto 1fr;
   gap:.08in;
-  align-items:end;
+  align-items:center;
   font-size:11.5pt;
   font-weight:900;
   white-space:nowrap;
 }
 .print-matching-team-line {
-  height:.22in;
-  border-bottom:2px solid #fff;
+  display:block;
+  width:100%;
+  height:.34in;
+  background:#fff;
+  border:2px solid #fff;
+  border-radius:4px;
 }
 .print-matching-body {
   min-height:0;
@@ -1417,6 +1421,13 @@ body.tv-mode {
   .print-matching-sheet:last-child {
     page-break-after: auto;
     break-after: auto;
+  }
+
+  .print-matching-team-line {
+    background:#fff !important;
+    border-color:#fff !important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
   }
 }
 
