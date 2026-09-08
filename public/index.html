@@ -1790,6 +1790,42 @@ function buildSlidesFromRounds(rounds) {
 
   return generatedSlides;
 }
+
+function fitRulesPage() {
+  const list = document.querySelector(".stage-rules-list");
+  if (!list) return;
+
+  const board = list.closest(".stage-board");
+  if (!board) return;
+
+  const boardStyle = getComputedStyle(board);
+  const bottomPadding = parseFloat(boardStyle.paddingBottom) || 0;
+  const boardBottom = board.getBoundingClientRect().bottom;
+  const listTop = list.getBoundingClientRect().top;
+  const availableHeight = Math.max(100, boardBottom - bottomPadding - listTop - 14);
+
+  list.style.lineHeight = "1.08";
+
+  // Keep the existing big rules type whenever possible.
+  let low = 1.05;
+  let high = 2.35;
+  let best = low;
+
+  for (let i = 0; i < 20; i++) {
+    const mid = (low + high) / 2;
+    list.style.fontSize = `${mid}rem`;
+
+    if (list.scrollHeight <= availableHeight) {
+      best = mid;
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  list.style.fontSize = `${Math.max(1.05, best - 0.025)}rem`;
+}
+
 function fitQuestionList() {
   const lists = document.querySelectorAll(
     ".stage-running-question-list, .stage-running-answer-list"
@@ -2370,7 +2406,7 @@ function renderIntroPage() {
     : `<div class="stage-intro-subtitle">Loading tonight's categories…</div>`;
 
   return renderStageShell({
-    round: "7:30 PM",
+    round: "7:30",
     title: "Start Time",
     sidebarLabel: "TONIGHT",
     centered: true,
@@ -2384,10 +2420,10 @@ function renderIntroPage() {
 function renderRulesPage() {
   const rules = [
     "If you know the answer, write it down. Don't yell it out. If you do, I reserve the right to mock you on the microphone.",
-    "No cheating, no Googling, Basically, don't be that guy. If you need to cheat to have fun, you may have a problem... seek help",
-    "If you don't know the answer, try to make us laugh. If it works, we may give you a half point.",
-    "Tip your servers well. Again: don't be a that guy.",
-    "Most importantly, have fun and don't take it too seriously. This is trivia, not rocket science, Treat it as such"
+    "No cheating, no Googling, no consulting Bing, no asking Jeeves, no phoning a friend. Basically, don't be a dick.",
+    "If you don't know the answer, try to make us laugh. If it works, we may give you a half point. Games have been won by a half point.",
+    "Tip your servers well. Again: don't be a dick.",
+    "Most importantly, have fun and tell your friends."
   ];
 
   return renderStageShell({
@@ -3527,6 +3563,7 @@ function render() {
 function runTextFitting() {
   fitQuestionText();
   fitQuestionList();
+  fitRulesPage();
   fitScoreboard();
 }
 
