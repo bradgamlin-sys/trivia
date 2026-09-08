@@ -1791,6 +1791,58 @@ function buildSlidesFromRounds(rounds) {
   return generatedSlides;
 }
 
+
+function fitIntroPage() {
+  const title = document.querySelector(".stage-intro-title");
+  const subtitle = document.querySelector(".stage-intro-subtitle");
+  const list = document.querySelector(".stage-category-list");
+  if (!title || !subtitle || !list) return;
+
+  const board = title.closest(".stage-board");
+  if (!board) return;
+
+  const boardStyle = getComputedStyle(board);
+  const topPadding = parseFloat(boardStyle.paddingTop) || 0;
+  const bottomPadding = parseFloat(boardStyle.paddingBottom) || 0;
+  const availableHeight = Math.max(200, board.clientHeight - topPadding - bottomPadding - 12);
+
+  const categoryLines = list.querySelectorAll(".stage-category-line");
+
+  function applyScale(scale) {
+    title.style.fontSize = `${Math.max(2.7, 6.2 * scale)}rem`;
+    subtitle.style.fontSize = `${Math.max(1.55, 3.0 * scale)}rem`;
+    const categorySize = Math.max(1.15, 2.7 * scale);
+    categoryLines.forEach(line => {
+      line.style.fontSize = `${categorySize}rem`;
+      line.style.lineHeight = "1.04";
+    });
+    subtitle.style.marginBottom = `${Math.max(8, 22 * scale)}px`;
+    list.style.gap = `${Math.max(3, 8 * scale)}px`;
+    list.style.marginTop = `${Math.max(2, 10 * scale)}px`;
+  }
+
+  function combinedHeight() {
+    const top = title.getBoundingClientRect().top;
+    const bottom = list.getBoundingClientRect().bottom;
+    return bottom - top;
+  }
+
+  let low = 0.5;
+  let high = 1.0;
+  let best = low;
+  for (let i = 0; i < 20; i++) {
+    const mid = (low + high) / 2;
+    applyScale(mid);
+    if (combinedHeight() <= availableHeight) {
+      best = mid;
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  applyScale(Math.max(0.5, best - 0.01));
+}
+
 function fitRulesPage() {
   const list = document.querySelector(".stage-rules-list");
   if (!list) return;
@@ -3563,6 +3615,7 @@ function render() {
 function runTextFitting() {
   fitQuestionText();
   fitQuestionList();
+  fitIntroPage();
   fitRulesPage();
   fitScoreboard();
 }
