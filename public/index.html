@@ -2096,8 +2096,8 @@ render();
     function resetScores() {
       if (!confirm("Clear all teams and scores?")) return;
       draftTeams = [];
-      localStorage.removeItem(BGOS_RESULTS_GAME_KEY);
-      resultsSaveStatus = "";
+      startNewResultsGame();
+      resultsSaveStatus = "New game started. Results will save under a fresh Game ID.";
       saveLocalCopy();
       render();
       emitTeams();
@@ -2364,7 +2364,7 @@ function renderFinalReveal() {
             <div class="controls">
               <button onclick="addTeam()">Add Team</button>
               <button class="secondary" onclick="emitTeams()">Save / Push Updates</button>
-              <button class="danger" onclick="resetScores()">Clear All</button>
+              <button class="danger" onclick="resetScores()">New Game / Clear All</button>
             </div>
             <div class="host-note">7 rounds + total. Type scores directly. Host leaderboard is auto-sorted.</div>
           </div>
@@ -3136,11 +3136,15 @@ function getNextActionLabel() {
 const BGOS_RESULTS_GAME_KEY = "bgosResultsGameId_v1";
 let resultsSaveStatus = "";
 let resultsSaving = false;
+function startNewResultsGame() {
+  const id = "bgos-" + Date.now() + "-" + Math.random().toString(36).slice(2, 12);
+  localStorage.setItem(BGOS_RESULTS_GAME_KEY, id);
+  return id;
+}
 function getResultsGameId() {
   let id = localStorage.getItem(BGOS_RESULTS_GAME_KEY);
   if (!id) {
-    id = "bgos-" + Date.now() + "-" + Math.random().toString(36).slice(2, 12);
-    localStorage.setItem(BGOS_RESULTS_GAME_KEY, id);
+    id = startNewResultsGame();
   }
   return id;
 }
@@ -3167,6 +3171,7 @@ function renderPodiumHostExtras() {
     <label>Date<input id="bgosResultDate" type="date" value="${new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10)}" style="display:block;padding:12px;margin:8px 0 14px;background:#222;color:white;border:1px solid #777;border-radius:8px"></label>
     <label>Save password<input id="bgosSavePassword" type="password" placeholder="Render BGOS_SAVE_KEY" autocomplete="off" style="display:block;width:100%;padding:12px;margin:8px 0 14px;background:#222;color:white;border:1px solid #777;border-radius:8px"></label>
     <button id="bgosSaveButton" onclick="saveFinalResults()" ${resultsSaving ? "disabled" : ""}>${resultsSaving ? "Saving…" : "💾 Save Final Results"}</button>
+    <p style="color:#aaa;font-size:.8rem">Game ID: ${escapeHtml(getResultsGameId())}</p>
     <p style="color:#ddd" role="status">${escapeHtml(resultsSaveStatus)}</p>
   </div>`;
 }
