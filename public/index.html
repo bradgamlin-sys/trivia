@@ -2096,6 +2096,8 @@ render();
     function resetScores() {
       if (!confirm("Clear all teams and scores?")) return;
       draftTeams = [];
+      localStorage.removeItem(BGOS_RESULTS_GAME_KEY);
+      resultsSaveStatus = "";
       saveLocalCopy();
       render();
       emitTeams();
@@ -3131,6 +3133,66 @@ function getNextActionLabel() {
   }
 }
 
+const BGOS_RESULTS_GAME_KEY = "bgosResultsGameId_v1";
+let resultsSaveStatus = "";
+let resultsSaving = false;
+function getResultsGameId() {
+  let id = localStorage.getItem(BGOS_RESULTS_GAME_KEY);
+  if (!id) {
+    id = "bgos-" + Date.now() + "-" + Math.random().toString(36).slice(2, 12);
+    localStorage.setItem(BGOS_RESULTS_GAME_KEY, id);
+  }
+  return id;
+}
+function nextPodiumPreview() {
+  const ranked = sortedTeams(teams);
+  const count = Math.max(0, Math.min(3, Number(podiumRevealCount) || 0));
+  const index = 2 - count;
+  if (index < 0 || !ranked[index]) return null;
+  return { team: ranked[index], place: index + 1 };
+}
+function renderPodiumHostExtras() {
+  const preview = nextPodiumPreview();
+  if (preview) return `<div style="max-width:700px;margin:20px auto;padding:24px;border:2px solid #f5c542;border-radius:16px;background:#171717;text-align:center">
+    <div style="color:#f5c542;font-weight:900;font-size:1.2rem">HOST ONLY · UP NEXT: ${preview.place}${getOrdinalSuffix(preview.place)} PLACE</div>
+    <div style="font-size:2rem;font-weight:900;margin:12px 0">${escapeHtml(preview.team.name)}</div>
+    <div style="font-size:1.6rem;color:#f5c542;font-weight:900">${preview.team.total} points</div>
+  </div>`;
+  if (Number(podiumRevealCount) < 3 || !teams.length) return "";
+  return `<div style="max-width:700px;margin:20px auto;padding:22px;border:2px solid #f5c542;border-radius:16px;background:#171717;text-align:left">
+    <h2 style="color:#f5c542">🏆 Save Final Results</h2>
+    <label>Venue<select id="bgosVenue" style="display:block;width:100%;padding:12px;margin:8px 0 14px;background:#222;color:white;border:1px solid #777;border-radius:8px">
+      <option value="Industrial Taphouse North">Industrial Taphouse North</option><option value="Industrial Taphouse West">Industrial Taphouse West</option><option value="Funktastic Meads">Funktastic Meads</option>
+    </select></label>
+    <label>Date<input id="bgosResultDate" type="date" value="${new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10)}" style="display:block;padding:12px;margin:8px 0 14px;background:#222;color:white;border:1px solid #777;border-radius:8px"></label>
+    <label>Save password<input id="bgosSavePassword" type="password" placeholder="Render BGOS_SAVE_KEY" autocomplete="off" style="display:block;width:100%;padding:12px;margin:8px 0 14px;background:#222;color:white;border:1px solid #777;border-radius:8px"></label>
+    <button id="bgosSaveButton" onclick="saveFinalResults()" ${resultsSaving ? "disabled" : ""}>${resultsSaving ? "Saving…" : "💾 Save Final Results"}</button>
+    <p style="color:#ddd" role="status">${escapeHtml(resultsSaveStatus)}</p>
+  </div>`;
+}
+async function saveFinalResults() {
+  if (resultsSaving || Number(podiumRevealCount) < 3) return;
+  const venue = document.getElementById("bgosVenue")?.value;
+  const date = document.getElementById("bgosResultDate")?.value;
+  const password = document.getElementById("bgosSavePassword")?.value;
+  if (!venue || !date || !password) { resultsSaveStatus = "Enter venue, date and save password."; render(); return; }
+  const ranked = sortedTeams(teams);
+  if (!ranked.length) return;
+  resultsSaving = true;
+  const button = document.getElementById("bgosSaveButton");
+  if (button) { button.disabled = true; button.textContent = "Saving…"; }
+  try {
+    const response = await fetch("/api/results/save", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({
+      password, gameId:getResultsGameId(), venue, date,
+      standings:ranked.map((t,i)=>({place:i+1,name:t.name,score:t.total}))
+    }) });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Save failed");
+    resultsSaveStatus = result.duplicate ? "Already saved: no duplicate created." : `Saved ${ranked.length} teams to Google Sheets!`;
+  } catch (error) { resultsSaveStatus = "NOT SAVED: " + error.message; }
+  finally { resultsSaving = false; render(); }
+}
+
 function renderControl() {
   currentSlideIndex = getCurrentSlideIndex();
   const slide = slides[currentSlideIndex];
@@ -3259,6 +3321,8 @@ function renderControl() {
           `
           : ""
       }
+
+      ${isPodiumMode ? renderPodiumHostExtras() : ""}
 
       ${renderJumpOverlay()}
     </div>
@@ -3967,6 +4031,7 @@ document.addEventListener("touchend", (e) => {
     window.emitTeams = emitTeams;
     window.revealNextTeam = revealNextTeam;
     window.resetFinalReveal = resetFinalReveal;
+    window.saveFinalResults = saveFinalResults;
     window.revealNextPodium = revealNextPodium;
     window.resetPodium = resetPodium;
     window.moveToNextScore = moveToNextScore;
